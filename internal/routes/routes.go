@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, healthHandler *handlers.HealthHandler) {
+func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, produtoHandler *handlers.ProdutoHandler, healthHandler *handlers.HealthHandler) {
 	api := r.PathPrefix("/api/v1").Subrouter()
 
 	api.HandleFunc("/health", healthHandler.HealthCheck).Methods(http.MethodGet)
@@ -19,4 +19,10 @@ func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, hea
 	api.HandleFunc("/clientes/{id}", clienteHandler.BuscarClientePorID).Methods(http.MethodGet)
 	api.HandleFunc("/clientes/{id}", clienteHandler.AtualizarCliente).Methods(http.MethodPut)
 	api.HandleFunc("/clientes/{id}", clienteHandler.DeletarCliente).Methods(http.MethodDelete)
+
+	api.HandleFunc("/produtos", produtoHandler.CriarProduto).Methods(http.MethodPost)
+	api.HandleFunc("/produtos", produtoHandler.ListarProdutos).Methods(http.MethodGet)
+	api.HandleFunc("/produtos/{id}", produtoHandler.BuscarProdutoPorID).Methods(http.MethodGet)
+	api.HandleFunc("/produtos/{id}", produtoHandler.AtualizarProduto).Methods(http.MethodPut)
+	api.HandleFunc("/produtos/{id}", produtoHandler.DeletarProduto).Methods(http.MethodDelete)
 }

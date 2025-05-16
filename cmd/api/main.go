@@ -53,8 +53,8 @@ func main() {
 	}
 	defer db.Close()
 
-	clienteRepository := repositories.NovoMySQLClienteRepository(db)
-	produtoRepository := repositories.NovoMySQLProdutoRepository(db)
+	clienteRepository := repositories.NovoClienteRepository(db)
+	produtoRepository := repositories.NovoProdutoRepository(db)
 
 	clienteService := services.NovoClienteService(clienteRepository)
 	produtoService := services.NovoProdutoService(produtoRepository)
