@@ -13,7 +13,7 @@ RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags="-s -w" -o 
 
 FROM alpine:3.18
 
-RUN apk update && apk add --no-cache ca-certificates tzdata sqlite
+RUN apk update && apk add --no-cache ca-certificates tzdata
 
 RUN adduser -D -g '' appuser
 
@@ -21,18 +21,19 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 COPY --from=builder /app/soat-fiap /app/soat-fiap
 
-RUN mkdir -p /app/data && \
-    chown -R appuser:appuser /app
-
 USER appuser
 
 WORKDIR /app
 
-EXPOSE 8080
+EXPOSE ${SERVER_PORT}
 
-ENV SERVER_PORT=8080
-ENV DATABASE_PATH=/app/data/db.sqlite
-ENV LOG_LEVEL=info
-ENV SWAGGER_ENABLE=true
+ENV SERVER_PORT=${SERVER_PORT}
+ENV DB_HOST=${DB_HOST}
+ENV DB_PORT=${DB_PORT}
+ENV DB_USER=${DB_USER}
+ENV DB_PASSWORD=${DB_PASSWORD}
+ENV DB_NAME=${DB_NAME}
+ENV LOG_LEVEL=${LOG_LEVEL}
+ENV SWAGGER_ENABLE=${SWAGGER_ENABLE}
 
 ENTRYPOINT ["/app/soat-fiap"]
