@@ -3,22 +3,21 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"errors"
-	"time"
-
 	"soat-fiap/internal/core/domain"
+	"time"
 )
 
-type SQLiteClienteRepository struct {
+type ClienteRepository struct {
 	db *sql.DB
 }
 
-func NovoSQLiteClienteRepository(db *sql.DB) *SQLiteClienteRepository {
-	return &SQLiteClienteRepository{
+func NovoClienteRepository(db *sql.DB) *ClienteRepository {
+	return &ClienteRepository{
 		db: db,
 	}
 }
-func (r *SQLiteClienteRepository) Criar(ctx context.Context, cliente *domain.Cliente) error {
+
+func (r *ClienteRepository) Criar(ctx context.Context, cliente *domain.Cliente) error {
 	stmt, err := r.db.PrepareContext(ctx, `
 		INSERT INTO clientes (id, nome, cpf, email, telefone, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -41,7 +40,7 @@ func (r *SQLiteClienteRepository) Criar(ctx context.Context, cliente *domain.Cli
 	return err
 }
 
-func (r *SQLiteClienteRepository) BuscarPorID(ctx context.Context, id string) (*domain.Cliente, error) {
+func (r *ClienteRepository) BuscarPorID(ctx context.Context, id string) (*domain.Cliente, error) {
 	stmt, err := r.db.PrepareContext(ctx, `
 		SELECT id, nome, cpf, email, telefone, created_at, updated_at
 		FROM clientes
@@ -78,7 +77,7 @@ func (r *SQLiteClienteRepository) BuscarPorID(ctx context.Context, id string) (*
 	return &cliente, nil
 }
 
-func (r *SQLiteClienteRepository) BuscarPorCPF(ctx context.Context, cpf string) (*domain.Cliente, error) {
+func (r *ClienteRepository) BuscarPorCPF(ctx context.Context, cpf string) (*domain.Cliente, error) {
 	stmt, err := r.db.PrepareContext(ctx, `
 		SELECT id, nome, cpf, email, telefone, created_at, updated_at
 		FROM clientes
@@ -115,7 +114,7 @@ func (r *SQLiteClienteRepository) BuscarPorCPF(ctx context.Context, cpf string) 
 	return &cliente, nil
 }
 
-func (r *SQLiteClienteRepository) Listar(ctx context.Context) ([]*domain.Cliente, error) {
+func (r *ClienteRepository) Listar(ctx context.Context) ([]*domain.Cliente, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, nome, cpf, email, telefone, created_at, updated_at
 		FROM clientes
@@ -157,7 +156,8 @@ func (r *SQLiteClienteRepository) Listar(ctx context.Context) ([]*domain.Cliente
 
 	return clientes, nil
 }
-func (r *SQLiteClienteRepository) Atualizar(ctx context.Context, cliente *domain.Cliente) error {
+
+func (r *ClienteRepository) Atualizar(ctx context.Context, cliente *domain.Cliente) error {
 	stmt, err := r.db.PrepareContext(ctx, `
 		UPDATE clientes
 		SET nome = ?, cpf = ?, email = ?, telefone = ?, updated_at = ?
@@ -186,13 +186,13 @@ func (r *SQLiteClienteRepository) Atualizar(ctx context.Context, cliente *domain
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("nenhum registro foi atualizado")
+		return sql.ErrNoRows
 	}
 
 	return nil
 }
 
-func (r *SQLiteClienteRepository) Deletar(ctx context.Context, id string) error {
+func (r *ClienteRepository) Deletar(ctx context.Context, id string) error {
 	stmt, err := r.db.PrepareContext(ctx, `
 		DELETE FROM clientes
 		WHERE id = ?
@@ -213,7 +213,7 @@ func (r *SQLiteClienteRepository) Deletar(ctx context.Context, id string) error 
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("nenhum registro foi removido")
+		return sql.ErrNoRows
 	}
 
 	return nil
