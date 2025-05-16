@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
@@ -15,7 +14,7 @@ import (
 	"soat-fiap/internal/adapters/secondary/repositories"
 	"soat-fiap/internal/core/services"
 	"soat-fiap/internal/routes"
-	sqlite "soat-fiap/pkg/database"
+	mysql "soat-fiap/pkg/database"
 
 	"github.com/gorilla/mux"
 )
@@ -42,23 +41,30 @@ const (
 func main() {
 	config := config.LoadConfig()
 
-	ensureDirExists(filepath.Dir(config.DatabasePath))
-
-	db, err := sqlite.ConectarDB(config.DatabasePath)
+	db, err := mysql.ConectarMySQL(
+		config.DBHost,
+		config.DBPort,
+		config.DBUser,
+		config.DBPassword,
+		config.DBName,
+	)
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
 	}
 	defer db.Close()
 
-	clienteRepository := repositories.NovoSQLiteClienteRepository(db)
+	clienteRepository := repositories.NovoMySQLClienteRepository(db)
+	produtoRepository := repositories.NovoMySQLProdutoRepository(db)
 
 	clienteService := services.NovoClienteService(clienteRepository)
+	produtoService := services.NovoProdutoService(produtoRepository)
 
 	clienteHandler := handlers.NovoClienteHandler(clienteService)
+	produtoHandler := handlers.NovoProdutoHandler(produtoService)
 	healthHandler := handlers.NovoHealthHandler(AppVersion)
 
 	router := mux.NewRouter()
-	routes.ConfigurarRotas(router, clienteHandler, healthHandler)
+	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, healthHandler)
 
 	server := &http.Server{
 		Addr:         ":" + config.ServerPort,
@@ -88,13 +94,4 @@ func main() {
 	}
 
 	log.Println("Servidor encerrado")
-}
-
-func ensureDirExists(dir string) {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		err = os.MkdirAll(dir, 0755)
-		if err != nil {
-			log.Fatalf("Erro ao criar diretório %s: %v", dir, err)
-		}
-	}
 }
