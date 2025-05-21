@@ -49,6 +49,28 @@ func iniciarTabelas(db *sql.DB) error {
 			updated_at TIMESTAMP NOT NULL,
 			INDEX idx_produtos_categoria (categoria)
 		)`,
+		`CREATE TABLE IF NOT EXISTS pedidos (
+			id VARCHAR(36) PRIMARY KEY,
+			cliente_id VARCHAR(36) NULL,
+			valor_total DECIMAL(10,2) NOT NULL,
+			status VARCHAR(20) NOT NULL,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
+			INDEX idx_status (status),
+			INDEX idx_cliente_id (cliente_id),
+			INDEX idx_created_at (created_at)
+		)`,
+		`CREATE TABLE IF NOT EXISTS pedido_itens (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			pedido_id VARCHAR(36) NOT NULL,
+			produto_id VARCHAR(36) NOT NULL,
+			nome VARCHAR(100) NOT NULL,
+			preco DECIMAL(10,2) NOT NULL,
+			quantidade INT NOT NULL,
+			observacao TEXT NULL,
+			FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+			INDEX idx_pedido_id (pedido_id)
+		)`,
 	}
 
 	for _, query := range queries {
