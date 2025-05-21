@@ -55,16 +55,19 @@ func main() {
 
 	clienteRepository := repositories.NovoClienteRepository(db)
 	produtoRepository := repositories.NovoProdutoRepository(db)
+	pedidoRepository := repositories.NovoPedidoRepository(db)
 
 	clienteService := services.NovoClienteService(clienteRepository)
 	produtoService := services.NovoProdutoService(produtoRepository)
+	pedidoService := services.NovoPedidoService(pedidoRepository, produtoRepository)
 
 	clienteHandler := handlers.NovoClienteHandler(clienteService)
 	produtoHandler := handlers.NovoProdutoHandler(produtoService)
+	pedidoHandler := handlers.NovoPedidoHandler(pedidoService)
 	healthHandler := handlers.NovoHealthHandler(AppVersion)
 
 	router := mux.NewRouter()
-	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, healthHandler)
+	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, pedidoHandler, healthHandler)
 
 	server := &http.Server{
 		Addr:         ":" + config.ServerPort,

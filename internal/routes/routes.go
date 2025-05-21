@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, produtoHandler *handlers.ProdutoHandler, healthHandler *handlers.HealthHandler) {
+func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, produtoHandler *handlers.ProdutoHandler, pedidoHandler *handlers.PedidoHandler, healthHandler *handlers.HealthHandler) {
 	api := r.PathPrefix("/api/v1").Subrouter()
 
 	api.HandleFunc("/health", healthHandler.HealthCheck).Methods(http.MethodGet)
@@ -25,4 +25,10 @@ func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, pro
 	api.HandleFunc("/produtos/{id}", produtoHandler.BuscarProdutoPorID).Methods(http.MethodGet)
 	api.HandleFunc("/produtos/{id}", produtoHandler.AtualizarProduto).Methods(http.MethodPut)
 	api.HandleFunc("/produtos/{id}", produtoHandler.DeletarProduto).Methods(http.MethodDelete)
+
+	api.HandleFunc("/checkout", pedidoHandler.FakeCheckout).Methods(http.MethodPost)
+	api.HandleFunc("/pedidos", pedidoHandler.FakeCheckout).Methods(http.MethodPost)
+	api.HandleFunc("/pedidos", pedidoHandler.ListarPedidos).Methods(http.MethodGet)
+	api.HandleFunc("/pedidos/{id}", pedidoHandler.BuscarPedidoPorID).Methods(http.MethodGet)
+	api.HandleFunc("/pedidos/{id}/status", pedidoHandler.AtualizarStatusPedido).Methods(http.MethodPatch)
 }
