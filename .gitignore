@@ -22,8 +22,10 @@ tmp/
 .vscode
 .idea
 
-# .env file
+# Environment files
 .env
+.env.*
+!.env.example
 
 # Project build
 main
@@ -31,4 +33,7 @@ main
 
 # OS X generated file
 .DS_Store
+
+# Environment variables
+.env
 
