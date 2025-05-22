@@ -1,6 +1,6 @@
 FROM golang:1.21-alpine AS builder
 
-RUN apk update && apk add --no-cache git ca-certificates tzdata gcc musl-dev
+RUN apk update && apk add --no-cache git ca-certificates tzdata gcc musl-dev make
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -ldflags="-s -w" -o 
 
 FROM alpine:3.18
 
-RUN apk update && apk add --no-cache ca-certificates tzdata
+RUN apk update && apk add --no-cache ca-certificates tzdata make
 
 RUN adduser -D -g '' appuser
 
@@ -25,7 +25,7 @@ USER appuser
 
 WORKDIR /app
 
-EXPOSE ${SERVER_PORT}
+EXPOSE 8080
 
 ENV SERVER_PORT=${SERVER_PORT}
 ENV DB_HOST=${DB_HOST}
