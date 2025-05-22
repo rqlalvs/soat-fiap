@@ -23,6 +23,12 @@ func NovoHealthHandler(version string) *HealthHandler {
 	}
 }
 
+// HealthCheck retorna o status de saúde da API.
+// @Summary Health check
+// @Tags health
+// @Produce json
+// @Success 200 {object} HealthResponse
+// @Router /health [get]
 func (h *HealthHandler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	response := HealthResponse{
 		Status:    "UP",

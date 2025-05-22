@@ -27,6 +27,15 @@ type CriarClienteRequest struct {
 	Telefone string `json:"telefone"`
 }
 
+// CriarCliente cria um novo cliente.
+// @Summary Criar cliente
+// @Tags clientes
+// @Accept json
+// @Produce json
+// @Param cliente body CriarClienteRequest true "Dados do cliente"
+// @Success 201 {object} domain.Cliente
+// @Failure 400 {string} string "Erro ao criar cliente"
+// @Router /clientes [post]
 func (h *ClienteHandler) CriarCliente(w http.ResponseWriter, r *http.Request) {
 	var req CriarClienteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -45,6 +54,14 @@ func (h *ClienteHandler) CriarCliente(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(cliente)
 }
 
+// BuscarClientePorID retorna um cliente pelo ID.
+// @Summary Buscar cliente por ID
+// @Tags clientes
+// @Produce json
+// @Param id path string true "ID do cliente"
+// @Success 200 {object} domain.Cliente
+// @Failure 404 {string} string "Cliente não encontrado"
+// @Router /clientes/{id} [get]
 func (h *ClienteHandler) BuscarClientePorID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -63,6 +80,15 @@ func (h *ClienteHandler) BuscarClientePorID(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(cliente)
 }
+
+// BuscarClientePorCPF retorna um cliente pelo CPF.
+// @Summary Buscar cliente por CPF
+// @Tags clientes
+// @Produce json
+// @Param cpf path string true "CPF do cliente"
+// @Success 200 {object} domain.Cliente
+// @Failure 404 {string} string "Cliente não encontrado"
+// @Router /clientes/cpf/{cpf} [get]
 func (h *ClienteHandler) BuscarClientePorCPF(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	cpf := vars["cpf"]
@@ -85,6 +111,13 @@ func (h *ClienteHandler) BuscarClientePorCPF(w http.ResponseWriter, r *http.Requ
 	json.NewEncoder(w).Encode(cliente)
 }
 
+// ListarClientes retorna todos os clientes.
+// @Summary Listar clientes
+// @Tags clientes
+// @Produce json
+// @Success 200 {array} domain.Cliente
+// @Failure 500 {string} string "Erro ao listar clientes"
+// @Router /clientes [get]
 func (h *ClienteHandler) ListarClientes(w http.ResponseWriter, r *http.Request) {
 	clientes, err := h.clienteService.ListarClientes(r.Context())
 	if err != nil {
@@ -103,6 +136,16 @@ type AtualizarClienteRequest struct {
 	Telefone string `json:"telefone"`
 }
 
+// AtualizarCliente atualiza um cliente existente.
+// @Summary Atualizar cliente
+// @Tags clientes
+// @Accept json
+// @Produce json
+// @Param id path string true "ID do cliente"
+// @Param cliente body AtualizarClienteRequest true "Dados do cliente"
+// @Success 200 {object} domain.Cliente
+// @Failure 400 {string} string "Erro ao atualizar cliente"
+// @Router /clientes/{id} [put]
 func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -138,6 +181,14 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(clienteExistente)
 }
 
+// DeletarCliente remove um cliente pelo ID.
+// @Summary Deletar cliente
+// @Tags clientes
+// @Produce json
+// @Param id path string true "ID do cliente"
+// @Success 204 {string} string "Cliente deletado"
+// @Failure 500 {string} string "Erro ao deletar cliente"
+// @Router /clientes/{id} [delete]
 func (h *ClienteHandler) DeletarCliente(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]

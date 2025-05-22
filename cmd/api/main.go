@@ -17,6 +17,7 @@ import (
 	mysql "soat-fiap/pkg/database"
 
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 const (
@@ -37,7 +38,6 @@ const (
 
 // @host      localhost:8080
 // @BasePath  /api/v1
-
 func main() {
 	cfg := config.LoadConfig()
 
@@ -68,6 +68,8 @@ func main() {
 
 	router := mux.NewRouter()
 	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, pedidoHandler, healthHandler)
+
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.ServerPort,

@@ -1,0 +1,541 @@
+basePath: /api/v1
+definitions:
+  domain.Categoria:
+    enum:
+    - LANCHE
+    - ACOMPANHAMENTO
+    - BEBIDA
+    - SOBREMESA
+    type: string
+    x-enum-varnames:
+    - CategoriaLanche
+    - CategoriaAcompanhamento
+    - CategoriaBebida
+    - CategoriaSobremesa
+  domain.Cliente:
+    properties:
+      cpf:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      nome:
+        type: string
+      telefone:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.ItemPedido:
+    properties:
+      nome:
+        type: string
+      observacao:
+        type: string
+      preco:
+        type: number
+      produto_id:
+        type: string
+      quantidade:
+        type: integer
+    type: object
+  domain.Pedido:
+    properties:
+      cliente_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      itens:
+        items:
+          $ref: '#/definitions/domain.ItemPedido'
+        type: array
+      status:
+        $ref: '#/definitions/domain.StatusPedido'
+      updated_at:
+        type: string
+      valor_total:
+        type: number
+    type: object
+  domain.Produto:
+    properties:
+      categoria:
+        $ref: '#/definitions/domain.Categoria'
+      created_at:
+        type: string
+      descricao:
+        type: string
+      disponivel:
+        type: boolean
+      id:
+        type: string
+      nome:
+        type: string
+      preco:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  domain.StatusPedido:
+    enum:
+    - RECEBIDO
+    - EM_PREPARACAO
+    - PRONTO
+    - FINALIZADO
+    type: string
+    x-enum-varnames:
+    - StatusRecebido
+    - StatusEmPreparacao
+    - StatusPronto
+    - StatusFinalizado
+  handlers.AtualizarClienteRequest:
+    properties:
+      cpf:
+        type: string
+      email:
+        type: string
+      nome:
+        type: string
+      telefone:
+        type: string
+    type: object
+  handlers.AtualizarProdutoRequest:
+    properties:
+      categoria:
+        $ref: '#/definitions/domain.Categoria'
+      descricao:
+        type: string
+      disponivel:
+        type: boolean
+      nome:
+        type: string
+      preco:
+        type: number
+    type: object
+  handlers.AtualizarStatusRequest:
+    properties:
+      status:
+        $ref: '#/definitions/domain.StatusPedido'
+    type: object
+  handlers.CriarClienteRequest:
+    properties:
+      cpf:
+        type: string
+      email:
+        type: string
+      nome:
+        type: string
+      telefone:
+        type: string
+    type: object
+  handlers.CriarItemPedidoRequest:
+    properties:
+      observacao:
+        type: string
+      produto_id:
+        type: string
+      quantidade:
+        type: integer
+    type: object
+  handlers.CriarPedidoRequest:
+    properties:
+      cliente_id:
+        type: string
+      itens:
+        items:
+          $ref: '#/definitions/handlers.CriarItemPedidoRequest'
+        type: array
+    type: object
+  handlers.CriarProdutoRequest:
+    properties:
+      categoria:
+        $ref: '#/definitions/domain.Categoria'
+      descricao:
+        type: string
+      nome:
+        type: string
+      preco:
+        type: number
+    type: object
+  handlers.HealthResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: API de exemplo com arquitetura hexagonal
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: API SOAT-FIAP
+  version: "1.0"
+paths:
+  /clientes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Cliente'
+            type: array
+        "500":
+          description: Erro ao listar clientes
+          schema:
+            type: string
+      summary: Listar clientes
+      tags:
+      - clientes
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do cliente
+        in: body
+        name: cliente
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CriarClienteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Cliente'
+        "400":
+          description: Erro ao criar cliente
+          schema:
+            type: string
+      summary: Criar cliente
+      tags:
+      - clientes
+  /clientes/{id}:
+    delete:
+      parameters:
+      - description: ID do cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Cliente deletado
+          schema:
+            type: string
+        "500":
+          description: Erro ao deletar cliente
+          schema:
+            type: string
+      summary: Deletar cliente
+      tags:
+      - clientes
+    get:
+      parameters:
+      - description: ID do cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cliente'
+        "404":
+          description: Cliente não encontrado
+          schema:
+            type: string
+      summary: Buscar cliente por ID
+      tags:
+      - clientes
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do cliente
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados do cliente
+        in: body
+        name: cliente
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AtualizarClienteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cliente'
+        "400":
+          description: Erro ao atualizar cliente
+          schema:
+            type: string
+      summary: Atualizar cliente
+      tags:
+      - clientes
+  /clientes/cpf/{cpf}:
+    get:
+      parameters:
+      - description: CPF do cliente
+        in: path
+        name: cpf
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Cliente'
+        "404":
+          description: Cliente não encontrado
+          schema:
+            type: string
+      summary: Buscar cliente por CPF
+      tags:
+      - clientes
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HealthResponse'
+      summary: Health check
+      tags:
+      - health
+  /pedidos:
+    get:
+      parameters:
+      - description: Status do pedido
+        in: query
+        name: status
+        type: string
+      - description: ID do cliente
+        in: query
+        name: cliente_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Pedido'
+            type: array
+        "500":
+          description: Erro ao listar pedidos
+          schema:
+            type: string
+      summary: Listar pedidos
+      tags:
+      - pedidos
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do pedido
+        in: body
+        name: pedido
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CriarPedidoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Erro ao criar pedido
+          schema:
+            type: string
+      summary: Criar pedido
+      tags:
+      - pedidos
+  /pedidos/{id}:
+    get:
+      parameters:
+      - description: ID do pedido
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Pedido'
+        "404":
+          description: Pedido não encontrado
+          schema:
+            type: string
+      summary: Buscar pedido por ID
+      tags:
+      - pedidos
+  /pedidos/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do pedido
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Novo status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AtualizarStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Erro ao atualizar status do pedido
+          schema:
+            type: string
+      summary: Atualizar status do pedido
+      tags:
+      - pedidos
+  /produtos:
+    get:
+      parameters:
+      - description: Categoria do produto
+        in: query
+        name: categoria
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Produto'
+            type: array
+        "500":
+          description: Erro ao listar produtos
+          schema:
+            type: string
+      summary: Listar produtos
+      tags:
+      - produtos
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do produto
+        in: body
+        name: produto
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CriarProdutoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/domain.Produto'
+        "400":
+          description: Erro ao criar produto
+          schema:
+            type: string
+      summary: Criar produto
+      tags:
+      - produtos
+  /produtos/{id}:
+    delete:
+      parameters:
+      - description: ID do produto
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Produto deletado
+          schema:
+            type: string
+        "500":
+          description: Erro ao deletar produto
+          schema:
+            type: string
+      summary: Deletar produto
+      tags:
+      - produtos
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do produto
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados do produto
+        in: body
+        name: produto
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AtualizarProdutoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Produto'
+        "400":
+          description: Erro ao atualizar produto
+          schema:
+            type: string
+      summary: Atualizar produto
+      tags:
+      - produtos
+swagger: "2.0"

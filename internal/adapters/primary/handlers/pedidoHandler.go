@@ -34,6 +34,15 @@ type AtualizarStatusRequest struct {
 	Status domain.StatusPedido `json:"status"`
 }
 
+// FakeCheckout cria um novo pedido (checkout fake para testes ou integração).
+// @Summary Criar pedido
+// @Tags pedidos
+// @Accept json
+// @Produce json
+// @Param pedido body CriarPedidoRequest true "Dados do pedido"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {string} string "Erro ao criar pedido"
+// @Router /pedidos [post]
 func (h *PedidoHandler) FakeCheckout(w http.ResponseWriter, r *http.Request) {
 	var req CriarPedidoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -64,6 +73,15 @@ func (h *PedidoHandler) FakeCheckout(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ListarPedidos retorna todos os pedidos, podendo filtrar por status ou cliente.
+// @Summary Listar pedidos
+// @Tags pedidos
+// @Produce json
+// @Param status query string false "Status do pedido"
+// @Param cliente_id query string false "ID do cliente"
+// @Success 200 {array} domain.Pedido
+// @Failure 500 {string} string "Erro ao listar pedidos"
+// @Router /pedidos [get]
 func (h *PedidoHandler) ListarPedidos(w http.ResponseWriter, r *http.Request) {
 	status := r.URL.Query().Get("status")
 	clienteID := r.URL.Query().Get("cliente_id")
@@ -88,6 +106,14 @@ func (h *PedidoHandler) ListarPedidos(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pedidos)
 }
 
+// BuscarPedidoPorID retorna um pedido pelo ID.
+// @Summary Buscar pedido por ID
+// @Tags pedidos
+// @Produce json
+// @Param id path string true "ID do pedido"
+// @Success 200 {object} domain.Pedido
+// @Failure 404 {string} string "Pedido não encontrado"
+// @Router /pedidos/{id} [get]
 func (h *PedidoHandler) BuscarPedidoPorID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -107,6 +133,16 @@ func (h *PedidoHandler) BuscarPedidoPorID(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(pedido)
 }
 
+// AtualizarStatusPedido atualiza o status de um pedido.
+// @Summary Atualizar status do pedido
+// @Tags pedidos
+// @Accept json
+// @Produce json
+// @Param id path string true "ID do pedido"
+// @Param status body AtualizarStatusRequest true "Novo status"
+// @Success 200 {object} map[string]string
+// @Failure 400 {string} string "Erro ao atualizar status do pedido"
+// @Router /pedidos/{id}/status [patch]
 func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
