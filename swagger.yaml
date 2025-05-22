@@ -1,0 +1,262 @@
+openapi: 3.0.3
+info:
+  title: API SOAT-FIAP
+  version: 1.0.0
+  description: API com arquitetura hexagonal
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: API está funcionando normalmente
+  /clientes:
+    post:
+      summary: Criar cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteRequest'
+      responses:
+        '201':
+          description: Cliente criado
+    get:
+      summary: Listar clientes
+      responses:
+        '200':
+          description: Lista de clientes
+  /clientes/cpf/{cpf}:
+    get:
+      summary: Buscar cliente por CPF
+      parameters:
+        - in: path
+          name: cpf
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cliente encontrado
+  /clientes/{id}:
+    get:
+      summary: Buscar cliente por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cliente encontrado
+    put:
+      summary: Atualizar cliente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClienteRequest'
+      responses:
+        '200':
+          description: Cliente atualizado
+    delete:
+      summary: Deletar cliente
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Cliente deletado
+  /produtos:
+    post:
+      summary: Criar produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoRequest'
+      responses:
+        '201':
+          description: Produto criado
+    get:
+      summary: Listar produtos
+      parameters:
+        - in: query
+          name: categoria
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de produtos
+  /produtos/{id}:
+    get:
+      summary: Buscar produto por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Produto encontrado
+    put:
+      summary: Atualizar produto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoRequest'
+      responses:
+        '200':
+          description: Produto atualizado
+    delete:
+      summary: Deletar produto
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Produto deletado
+  /pedidos:
+    post:
+      summary: Criar pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PedidoRequest'
+      responses:
+        '201':
+          description: Pedido criado
+    get:
+      summary: Listar pedidos
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: cliente_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de pedidos
+  /pedidos/{id}:
+    get:
+      summary: Buscar pedido por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pedido encontrado
+  /pedidos/{id}/status:
+    patch:
+      summary: Atualizar status do pedido
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarStatusRequest'
+      responses:
+        '200':
+          description: Status atualizado
+components:
+  schemas:
+    ClienteRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+        cpf:
+          type: string
+        email:
+          type: string
+        telefone:
+          type: string
+      required: [nome, cpf, email, telefone]
+    ProdutoRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+        descricao:
+          type: string
+        preco:
+          type: number
+        categoria:
+          type: string
+        disponivel:
+          type: boolean
+      required: [nome, descricao, preco, categoria]
+    PedidoRequest:
+      type: object
+      properties:
+        cliente_id:
+          type: string
+        itens:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemPedidoRequest'
+      required: [itens]
+    ItemPedidoRequest:
+      type: object
+      properties:
+        produto_id:
+          type: string
+        quantidade:
+          type: integer
+        observacao:
+          type: string
+      required: [produto_id, quantidade]
+    AtualizarStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
