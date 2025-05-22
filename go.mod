@@ -1,6 +1,6 @@
 module soat-fiap
 
-go 1.23.4
+go 1.21.13
 
 require (
 	github.com/go-sql-driver/mysql v1.9.2
