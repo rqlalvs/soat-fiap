@@ -39,14 +39,14 @@ const (
 // @BasePath  /api/v1
 
 func main() {
-	config := config.LoadConfig()
+	cfg := config.LoadConfig()
 
 	db, err := mysql.ConectarMySQL(
-		config.DBHost,
-		config.DBPort,
-		config.DBUser,
-		config.DBPassword,
-		config.DBName,
+		cfg.DBHost,
+		cfg.DBPort,
+		cfg.DBUser,
+		cfg.DBPassword,
+		cfg.DBName,
 	)
 	if err != nil {
 		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
@@ -70,7 +70,7 @@ func main() {
 	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, pedidoHandler, healthHandler)
 
 	server := &http.Server{
-		Addr:         ":" + config.ServerPort,
+		Addr:         ":" + cfg.ServerPort,
 		Handler:      router,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("Servidor iniciado na porta %s", config.ServerPort)
+		log.Printf("Servidor iniciado na porta %s", cfg.ServerPort)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Erro ao iniciar servidor: %v", err)
 		}
