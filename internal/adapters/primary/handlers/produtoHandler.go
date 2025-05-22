@@ -26,6 +26,15 @@ type CriarProdutoRequest struct {
 	Categoria domain.Categoria `json:"categoria"`
 }
 
+// CriarProduto cria um novo produto.
+// @Summary Criar produto
+// @Tags produtos
+// @Accept json
+// @Produce json
+// @Param produto body CriarProdutoRequest true "Dados do produto"
+// @Success 201 {object} domain.Produto
+// @Failure 400 {string} string "Erro ao criar produto"
+// @Router /produtos [post]
 func (h *ProdutoHandler) CriarProduto(w http.ResponseWriter, r *http.Request) {
 	var req CriarProdutoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -63,6 +72,14 @@ func (h *ProdutoHandler) BuscarProdutoPorID(w http.ResponseWriter, r *http.Reque
 	json.NewEncoder(w).Encode(produto)
 }
 
+// ListarProdutos retorna todos os produtos, podendo filtrar por categoria.
+// @Summary Listar produtos
+// @Tags produtos
+// @Produce json
+// @Param categoria query string false "Categoria do produto"
+// @Success 200 {array} domain.Produto
+// @Failure 500 {string} string "Erro ao listar produtos"
+// @Router /produtos [get]
 func (h *ProdutoHandler) ListarProdutos(w http.ResponseWriter, r *http.Request) {
 	categoria := r.URL.Query().Get("categoria")
 	var produtos []*domain.Produto
@@ -91,6 +108,16 @@ type AtualizarProdutoRequest struct {
 	Disponivel bool             `json:"disponivel"`
 }
 
+// AtualizarProduto atualiza um produto existente.
+// @Summary Atualizar produto
+// @Tags produtos
+// @Accept json
+// @Produce json
+// @Param id path string true "ID do produto"
+// @Param produto body AtualizarProdutoRequest true "Dados do produto"
+// @Success 200 {object} domain.Produto
+// @Failure 400 {string} string "Erro ao atualizar produto"
+// @Router /produtos/{id} [put]
 func (h *ProdutoHandler) AtualizarProduto(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -128,6 +155,14 @@ func (h *ProdutoHandler) AtualizarProduto(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(produtoExistente)
 }
 
+// DeletarProduto remove um produto pelo ID.
+// @Summary Deletar produto
+// @Tags produtos
+// @Produce json
+// @Param id path string true "ID do produto"
+// @Success 204 {string} string "Produto deletado"
+// @Failure 500 {string} string "Erro ao deletar produto"
+// @Router /produtos/{id} [delete]
 func (h *ProdutoHandler) DeletarProduto(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
