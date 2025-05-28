@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	_ "soat-fiap/docs" // swagger docs
+
 	config "soat-fiap/configs"
 	"soat-fiap/internal/adapters/primary/handlers"
 	"soat-fiap/internal/adapters/secondary/repositories"
@@ -69,7 +71,12 @@ func main() {
 	router := mux.NewRouter()
 	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, pedidoHandler, healthHandler)
 
-	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	// Swagger
+	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("doc.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("none"),
+	))
 
 	server := &http.Server{
 		Addr:         ":" + cfg.ServerPort,
