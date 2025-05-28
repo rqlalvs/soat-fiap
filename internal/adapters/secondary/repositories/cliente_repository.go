@@ -33,8 +33,8 @@ func (r *ClienteRepository) Criar(ctx context.Context, cliente *domain.Cliente) 
 		cliente.CPF,
 		cliente.Email,
 		cliente.Telefone,
-		cliente.CreatedAt.Format(time.RFC3339),
-		cliente.UpdatedAt.Format(time.RFC3339),
+		cliente.CreatedAt.Format("2006-01-02 15:04:05"),
+		cliente.UpdatedAt.Format("2006-01-02 15:04:05"),
 	)
 
 	return err
@@ -71,8 +71,8 @@ func (r *ClienteRepository) BuscarPorID(ctx context.Context, id string) (*domain
 		return nil, err
 	}
 
-	cliente.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-	cliente.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+	cliente.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+	cliente.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 	return &cliente, nil
 }
@@ -108,8 +108,8 @@ func (r *ClienteRepository) BuscarPorCPF(ctx context.Context, cpf string) (*doma
 		return nil, err
 	}
 
-	cliente.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-	cliente.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+	cliente.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+	cliente.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 	return &cliente, nil
 }
@@ -144,8 +144,8 @@ func (r *ClienteRepository) Listar(ctx context.Context) ([]*domain.Cliente, erro
 			return nil, err
 		}
 
-		cliente.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-		cliente.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+		cliente.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+		cliente.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 		clientes = append(clientes, &cliente)
 	}
@@ -173,7 +173,7 @@ func (r *ClienteRepository) Atualizar(ctx context.Context, cliente *domain.Clien
 		cliente.CPF,
 		cliente.Email,
 		cliente.Telefone,
-		cliente.UpdatedAt.Format(time.RFC3339),
+		cliente.UpdatedAt.Format("2006-01-02 15:04:05"),
 		cliente.ID,
 	)
 	if err != nil {
