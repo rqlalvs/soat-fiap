@@ -84,12 +84,14 @@ definitions:
     enum:
     - RECEBIDO
     - EM_PREPARACAO
+    - CANCELADO
     - PRONTO
     - FINALIZADO
     type: string
     x-enum-varnames:
     - StatusRecebido
     - StatusEmPreparacao
+    - StatusCancelado
     - StatusPronto
     - StatusFinalizado
   handlers.AtualizarClienteRequest:

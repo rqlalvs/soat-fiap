@@ -5,6 +5,7 @@ import (
 	"errors"
 	"soat-fiap/internal/core/domain"
 	"soat-fiap/internal/core/ports"
+	"soat-fiap/internal/core/common"
 	"time"
 
 	"github.com/google/uuid"
@@ -47,7 +48,7 @@ func (s *ClienteService) BuscarClientePorID(ctx context.Context, id string) (*do
 }
 
 func (s *ClienteService) BuscarClientePorCPF(ctx context.Context, cpf string) (*domain.Cliente, error) {
-	if !domain.ValidarCPF(cpf) {
+	if !common.ValidarCPF(cpf) {
 		return nil, errors.New("CPF inválido")
 	}
 	return s.repository.BuscarPorCPF(ctx, cpf)
