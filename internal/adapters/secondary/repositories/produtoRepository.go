@@ -34,8 +34,8 @@ func (r *ProdutoRepository) Criar(ctx context.Context, produto *domain.Produto) 
 		produto.Preco,
 		produto.Categoria,
 		produto.Disponivel,
-		produto.CreatedAt.Format(time.RFC3339),
-		produto.UpdatedAt.Format(time.RFC3339),
+		produto.CreatedAt.Format("2006-01-02 15:04:05"),
+		produto.UpdatedAt.Format("2006-01-02 15:04:05"),
 	)
 
 	return err
@@ -73,8 +73,8 @@ func (r *ProdutoRepository) BuscarPorID(ctx context.Context, id string) (*domain
 		return nil, err
 	}
 
-	produto.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-	produto.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+	produto.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+	produto.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 	return &produto, nil
 }
@@ -110,8 +110,8 @@ func (r *ProdutoRepository) Listar(ctx context.Context) ([]*domain.Produto, erro
 			return nil, err
 		}
 
-		produto.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-		produto.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+		produto.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+		produto.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 		produtos = append(produtos, &produto)
 	}
@@ -155,8 +155,8 @@ func (r *ProdutoRepository) ListarPorCategoria(ctx context.Context, categoria do
 			return nil, err
 		}
 
-		produto.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-		produto.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+		produto.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+		produto.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 		produtos = append(produtos, &produto)
 	}
@@ -185,7 +185,7 @@ func (r *ProdutoRepository) Atualizar(ctx context.Context, produto *domain.Produ
 		produto.Preco,
 		produto.Categoria,
 		produto.Disponivel,
-		produto.UpdatedAt.Format(time.RFC3339),
+		produto.UpdatedAt.Format("2006-01-02 15:04:05"),
 		produto.ID,
 	)
 	if err != nil {

@@ -38,8 +38,8 @@ func (r *PedidoRepository) Criar(ctx context.Context, pedido *domain.Pedido) err
 		pedido.ClienteID,
 		pedido.ValorTotal,
 		pedido.Status,
-		pedido.CreatedAt.Format(time.RFC3339),
-		pedido.UpdatedAt.Format(time.RFC3339),
+		pedido.CreatedAt.Format("2006-01-02 15:04:05"),
+		pedido.UpdatedAt.Format("2006-01-02 15:04:05"),
 	)
 	if err != nil {
 		return err
@@ -106,8 +106,8 @@ func (r *PedidoRepository) BuscarPorID(ctx context.Context, id string) (*domain.
 		pedido.ClienteID = &clienteID.String
 	}
 
-	pedido.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-	pedido.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+	pedido.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+	pedido.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 	itens, err := r.buscarItensPorPedidoID(ctx, id)
 	if err != nil {
@@ -176,7 +176,7 @@ func (r *PedidoRepository) Atualizar(ctx context.Context, pedido *domain.Pedido)
 
 	result, err := stmt.ExecContext(ctx,
 		pedido.Status,
-		pedido.UpdatedAt.Format(time.RFC3339),
+		pedido.UpdatedAt.Format("2006-01-02 15:04:05"),
 		pedido.ID,
 	)
 	if err != nil {
@@ -219,8 +219,8 @@ func (r *PedidoRepository) processarResultados(ctx context.Context, rows *sql.Ro
 			pedido.ClienteID = &clienteID.String
 		}
 
-		pedido.CreatedAt, _ = time.Parse(time.RFC3339, createdAtStr)
-		pedido.UpdatedAt, _ = time.Parse(time.RFC3339, updatedAtStr)
+		pedido.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAtStr)
+		pedido.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 
 		itens, err := r.buscarItensPorPedidoID(ctx, pedido.ID)
 		if err != nil {
