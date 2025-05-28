@@ -14,6 +14,7 @@ API REST para gerenciamento de pedidos de uma lanchonete, desenvolvida com arqui
 .
 ├── cmd/                    # Ponto de entrada da aplicação
 ├── configs/               # Configurações
+├── docs/                 # Documentação
 ├── internal/              # Código interno da aplicação
 │   ├── adapters/         # Adaptadores (primários e secundários)
 │   │   ├── primary/     # Adaptadores primários (handlers HTTP)
@@ -27,38 +28,55 @@ API REST para gerenciamento de pedidos de uma lanchonete, desenvolvida com arqui
     └── database/       # Configuração de banco de dados
 ```
 
-## 🔧 Configuração
+## 🔧 Configuração e Execução
 
 1. Clone o repositório
 ```bash
-git clone https://github.com/seu-usuario/soat-fiap.git
+git clone https://github.com/rqlalvs/soat-fiap
 cd soat-fiap
 ```
 
-2. Crie um arquivo `.env` baseado no `.env.example`:
-```bash
-cp .env.example .env
-```
-
-3. Configure as variáveis de ambiente no arquivo `.env`:
+2. Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 ```env
-# Server
-SERVER_PORT=8080
-
-# Database
-MYSQL_ROOT_PASSWORD=sua_senha_root
+# MySQL
+MYSQL_ROOT_PASSWORD=root
 MYSQL_DATABASE=soat_fiap
-MYSQL_USER=seu_usuario
-MYSQL_PASSWORD=sua_senha
+MYSQL_USER=soat_fiap
+MYSQL_PASSWORD=soat_fiap
 
-# API Environment
+# API
+SERVER_PORT=8080
 DB_HOST=mysql
 DB_PORT=3306
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
+DB_USER=soat_fiap
+DB_PASSWORD=soat_fiap
 DB_NAME=soat_fiap
-LOG_LEVEL=info
+LOG_LEVEL=debug
 SWAGGER_ENABLE=true
+```
+
+3. Execute o projeto usando Docker Compose:
+```bash
+# Construir e iniciar os containers
+docker compose up --build
+
+# OU para executar em background
+docker compose up --build -d
+```
+
+4. Verifique se os containers estão rodando:
+```bash
+docker ps
+```
+
+5. A API estará disponível em:
+- API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger/index.html
+- Health Check: http://localhost:8080/api/v1/health
+
+6. Para parar os containers:
+```bash
+docker compose down
 ```
 
 ## 🚀 Executando o Projeto
@@ -110,37 +128,19 @@ go run cmd/api/main.go
 - `BEBIDA`
 - `SOBREMESA`
 
-## 🧪 Testes
+### Pedidos
+- `POST /api/v1/checkout` - Realizar checkout do pedido
+- `POST /api/v1/pedidos` - Criar pedido
+- `GET /api/v1/pedidos` - Listar pedidos
+- `GET /api/v1/pedidos/{id}` - Buscar pedido por ID
+- `PATCH /api/v1/pedidos/{id}/status` - Atualizar status do pedido
 
-```bash
-# Executar todos os testes
-make test
-
-# Executar testes com coverage
-make test-coverage
-```
-
-## 📚 Makefile
-
-```bash
-make all           # Build com testes
-make build         # Build da aplicação
-make run           # Executar a aplicação
-make watch         # Live reload
-make test          # Executar testes
-make clean         # Limpar binários
-```
-
-## 🔍 Health Check
-
-A API possui um endpoint de health check:
-```
-GET /api/v1/health
-```
-
-## 📖 Swagger
+### Health Check
+- `GET /api/v1/health` - Verificar status da API
 
 A documentação Swagger está disponível em:
 ```
 http://localhost:8080/swagger/index.html
 ```
+
+Feito por Raquel Alves e Alexandre Pereira :D
