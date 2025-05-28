@@ -693,11 +693,13 @@ const docTemplate = `{
                 "RECEBIDO",
                 "EM_PREPARACAO",
                 "PRONTO",
-                "FINALIZADO"
+                "FINALIZADO",
+                "CANCELADO"
             ],
             "x-enum-varnames": [
                 "StatusRecebido",
                 "StatusEmPreparacao",
+                "StatusCancelado",
                 "StatusPronto",
                 "StatusFinalizado"
             ]

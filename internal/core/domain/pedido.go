@@ -10,6 +10,7 @@ type StatusPedido string
 const (
 	StatusRecebido     StatusPedido = "RECEBIDO"
 	StatusEmPreparacao StatusPedido = "EM_PREPARACAO"
+	StatusCancelado    StatusPedido = "CANCELADO"
 	StatusPronto       StatusPedido = "PRONTO"
 	StatusFinalizado   StatusPedido = "FINALIZADO"
 )
@@ -86,7 +87,7 @@ func (p *Pedido) AtualizarStatus(novoStatus StatusPedido) {
 
 func IsStatusValido(status StatusPedido) bool {
 	switch status {
-	case StatusRecebido, StatusEmPreparacao, StatusPronto, StatusFinalizado:
+	case StatusRecebido, StatusEmPreparacao, StatusCancelado, StatusPronto, StatusFinalizado:
 		return true
 	default:
 		return false

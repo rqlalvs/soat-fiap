@@ -2,8 +2,8 @@ package domain
 
 import (
 	"errors"
-	"regexp"
 	"time"
+	"soat-fiap/internal/core/common"
 )
 
 type Cliente struct {
@@ -40,11 +40,11 @@ func (c *Cliente) Validar() error {
 		return errors.New("nome não pode ser vazio")
 	}
 
-	if !ValidarCPF(c.CPF) {
+	if !common.ValidarCPF(c.CPF) {
 		return errors.New("CPF inválido")
 	}
 
-	if !ValidarEmail(c.Email) {
+	if !common.ValidarEmail(c.Email) {
 		return errors.New("email inválido")
 	}
 
@@ -55,60 +55,4 @@ func (c *Cliente) Validar() error {
 	return nil
 }
 
-func ValidarCPF(cpf string) bool {
 
-	re := regexp.MustCompile(`[^0-9]`)
-	cpf = re.ReplaceAllString(cpf, "")
-
-	if len(cpf) != 11 {
-		return false
-	}
-
-	igual := true
-	for i := 1; i < 11; i++ {
-		if cpf[i] != cpf[0] {
-			igual = false
-			break
-		}
-	}
-	if igual {
-		return false
-	}
-
-	soma := 0
-	for i := 0; i < 9; i++ {
-		soma += int(cpf[i]-'0') * (10 - i)
-	}
-	resto := soma % 11
-	if resto < 2 {
-		if cpf[9] != '0' {
-			return false
-		}
-	} else {
-		if cpf[9] != byte('0'+11-resto) {
-			return false
-		}
-	}
-
-	soma = 0
-	for i := 0; i < 10; i++ {
-		soma += int(cpf[i]-'0') * (11 - i)
-	}
-	resto = soma % 11
-	if resto < 2 {
-		if cpf[10] != '0' {
-			return false
-		}
-	} else {
-		if cpf[10] != byte('0'+11-resto) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func ValidarEmail(email string) bool {
-	re := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	return re.MatchString(email)
-}
