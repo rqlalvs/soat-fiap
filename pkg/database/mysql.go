@@ -28,14 +28,18 @@ func ConectarMySQL(host, port, user, password, dbname string) (*sql.DB, error) {
 
 func iniciarTabelas(db *sql.DB) error {
 	queries := []string{
+		`DROP TABLE IF EXISTS pedido_itens`,
+		`DROP TABLE IF EXISTS pedidos`,
+		`DROP TABLE IF EXISTS clientes`,
+		`DROP TABLE IF EXISTS produtos`,
 		`CREATE TABLE IF NOT EXISTS clientes (
 			id VARCHAR(36) PRIMARY KEY,
 			nome VARCHAR(100) NOT NULL,
 			cpf VARCHAR(11) NOT NULL UNIQUE,
 			email VARCHAR(100) NOT NULL,
 			telefone VARCHAR(20) NOT NULL,
-			created_at TIMESTAMP NOT NULL,
-			updated_at TIMESTAMP NOT NULL,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
 			INDEX idx_clientes_cpf (cpf)
 		)`,
 		`CREATE TABLE IF NOT EXISTS produtos (
