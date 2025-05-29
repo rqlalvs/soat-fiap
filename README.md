@@ -2,6 +2,13 @@
 
 API REST para gerenciamento de pedidos de uma lanchonete, desenvolvida com arquitetura hexagonal em Go.
 
+## 📋 Requisitos
+
+- Git Bash
+- Docker
+- Go
+
+
 ## 🚀 Tecnologias
 
 - Go 1.21
@@ -30,7 +37,7 @@ API REST para gerenciamento de pedidos de uma lanchonete, desenvolvida com arqui
 
 ## 🔧 Configuração e Execução
 
-1. Clone o repositório
+1. Clone o repositório utilizando Git Bash
 ```bash
 git clone https://github.com/rqlalvs/soat-fiap
 cd soat-fiap
@@ -60,7 +67,7 @@ LOG_LEVEL=info
 SWAGGER_ENABLE=true
 ```
 
-3. Execute o projeto usando Docker Compose:
+3. Execute o Docker Desktop, e execute projeto usando Docker Compose:
 ```bash
 # Construir e iniciar os containers
 docker compose up --build
