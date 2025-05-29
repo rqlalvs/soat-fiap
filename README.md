@@ -38,20 +38,25 @@ cd soat-fiap
 
 2. Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo:
 ```env
-# MySQL
+PORT=8080
+APP_ENV=local
+BLUEPRINT_DB_URL=./test.db
+# Server
+SERVER_PORT=8080
+
+# Database
 MYSQL_ROOT_PASSWORD=root
 MYSQL_DATABASE=soat_fiap
-MYSQL_USER=soat_fiap
-MYSQL_PASSWORD=soat_fiap
+MYSQL_USER=soat
+MYSQL_PASSWORD=fiap123
 
-# API
-SERVER_PORT=8080
+# API Environment
 DB_HOST=mysql
 DB_PORT=3306
-DB_USER=soat_fiap
-DB_PASSWORD=soat_fiap
+DB_USER=soat
+DB_PASSWORD=fiap123
 DB_NAME=soat_fiap
-LOG_LEVEL=debug
+LOG_LEVEL=info
 SWAGGER_ENABLE=true
 ```
 
