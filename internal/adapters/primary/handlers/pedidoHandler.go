@@ -34,16 +34,16 @@ type AtualizarStatusRequest struct {
 	Status domain.StatusPedido `json:"status"`
 }
 
-// FakeCheckout cria um novo pedido (checkout fake para testes ou integração).
-// @Summary Criar pedido
+// CheckoutPedido cria um novo pedido (checkout real para integração futura com pagamento).
+// @Summary Checkout do pedido
 // @Tags pedidos
 // @Accept json
 // @Produce json
 // @Param pedido body CriarPedidoRequest true "Dados do pedido"
 // @Success 201 {object} map[string]interface{}
 // @Failure 400 {string} string "Erro ao criar pedido"
-// @Router /pedidos [post]
-func (h *PedidoHandler) FakeCheckout(w http.ResponseWriter, r *http.Request) {
+// @Router /checkout [post]
+func (h *PedidoHandler) CheckoutPedido(w http.ResponseWriter, r *http.Request) {
 	var req CriarPedidoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Erro ao decodificar requisição: "+err.Error(), http.StatusBadRequest)
@@ -68,8 +68,9 @@ func (h *PedidoHandler) FakeCheckout(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Pedido criado e enviado para fila com sucesso",
-		"pedido":  pedido,
+		"message":   "Pedido criado com sucesso. Prossiga para o pagamento.",
+		"pedido_id": pedido.ID,
+		"status":    pedido.Status,
 	})
 }
 
@@ -162,5 +163,34 @@ func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Status do pedido atualizado com sucesso",
+	})
+}
+
+// ConsultarStatusPagamento retorna o status de pagamento do pedido (mock).
+// @Summary Consultar status de pagamento do pedido
+// @Tags pagamento
+// @Produce json
+// @Param id path string true "ID do pedido"
+// @Success 200 {object} map[string]interface{}
+// @Failure 404 {string} string "Pedido não encontrado"
+// @Router /pedidos/{id}/pagamento/status [get]
+func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	pedido, err := h.pedidoService.BuscarPedidoPorID(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Erro ao buscar pedido: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if pedido == nil {
+		http.Error(w, "Pedido não encontrado", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"pedido_id":        id,
+		"status_pagamento": "APROVADO",
 	})
 }

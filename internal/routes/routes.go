@@ -26,9 +26,9 @@ func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, pro
 	api.HandleFunc("/produtos/{id}", produtoHandler.AtualizarProduto).Methods(http.MethodPut)
 	api.HandleFunc("/produtos/{id}", produtoHandler.DeletarProduto).Methods(http.MethodDelete)
 
-	api.HandleFunc("/checkout", pedidoHandler.FakeCheckout).Methods(http.MethodPost)
-	api.HandleFunc("/pedidos", pedidoHandler.FakeCheckout).Methods(http.MethodPost)
+	api.HandleFunc("/checkout", pedidoHandler.CheckoutPedido).Methods(http.MethodPost)
 	api.HandleFunc("/pedidos", pedidoHandler.ListarPedidos).Methods(http.MethodGet)
 	api.HandleFunc("/pedidos/{id}", pedidoHandler.BuscarPedidoPorID).Methods(http.MethodGet)
 	api.HandleFunc("/pedidos/{id}/status", pedidoHandler.AtualizarStatusPedido).Methods(http.MethodPatch)
+	api.HandleFunc("/pedidos/{id}/pagamento/status", pedidoHandler.ConsultarStatusPagamento).Methods(http.MethodGet)
 }
