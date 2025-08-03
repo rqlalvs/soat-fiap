@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"soat-fiap/internal/core/domain"
 	"soat-fiap/internal/core/ports"
 
@@ -10,14 +11,16 @@ import (
 )
 
 type PedidoService struct {
-	pedidoRepository  ports.PedidoRepository
-	produtoRepository ports.ProdutoRepository
+	pedidoRepository    ports.PedidoRepository
+	produtoRepository   ports.ProdutoRepository
+	pagamentoRepository ports.PagamentoRepository
 }
 
-func NovoPedidoService(pedidoRepository ports.PedidoRepository, produtoRepository ports.ProdutoRepository) *PedidoService {
+func NovoPedidoService(pedidoRepository ports.PedidoRepository, produtoRepository ports.ProdutoRepository, pagamentoRepository ports.PagamentoRepository) *PedidoService {
 	return &PedidoService{
-		pedidoRepository:  pedidoRepository,
-		produtoRepository: produtoRepository,
+		pedidoRepository:    pedidoRepository,
+		produtoRepository:   produtoRepository,
+		pagamentoRepository: pagamentoRepository,
 	}
 }
 
@@ -85,6 +88,67 @@ func (s *PedidoService) AtualizarStatusPedido(ctx context.Context, id string, st
 		return errors.New("pedido não encontrado")
 	}
 
+	err = s.validarTransicaoStatus(ctx, pedido, status)
+	if err != nil {
+		return err
+	}
+
 	pedido.AtualizarStatus(status)
 	return s.pedidoRepository.Atualizar(ctx, pedido)
 }
+
+func (s *PedidoService) validarTransicaoStatus(ctx context.Context, pedido *domain.Pedido, novoStatus domain.StatusPedido) error {
+
+	if novoStatus == domain.StatusEmPreparacao && pedido.Status == domain.StatusRecebido {
+		pagamento, err := s.pagamentoRepository.BuscarPorPedidoID(ctx, pedido.ID)
+		if err != nil {
+			return fmt.Errorf("erro ao verificar pagamento: %w", err)
+		}
+		
+		if pagamento == nil {
+			return errors.New("não é possível iniciar preparação: pagamento não encontrado")
+		}
+		
+		if pagamento.Status != domain.StatusPagamentoAprovado {
+			return fmt.Errorf("não é possível iniciar preparação: pagamento não aprovado (status: %s)", pagamento.Status)
+		}
+	}
+	
+	if novoStatus != domain.StatusCancelado {
+		if !s.isTransicaoValida(pedido.Status, novoStatus) {
+			return fmt.Errorf("transição de status inválida: de %s para %s", pedido.Status, novoStatus)
+		}
+	}
+	
+	return nil
+}
+
+func (s *PedidoService) isTransicaoValida(statusAtual, novoStatus domain.StatusPedido) bool {
+	transicoesValidas := map[domain.StatusPedido][]domain.StatusPedido{
+		domain.StatusRecebido: {
+			domain.StatusEmPreparacao,
+			domain.StatusCancelado,
+		},
+		domain.StatusEmPreparacao: {
+			domain.StatusPronto,
+			domain.StatusCancelado,
+		},
+		domain.StatusPronto: {
+			domain.StatusFinalizado,
+		},
+		domain.StatusFinalizado: {},
+		domain.StatusCancelado:  {},
+	}
+	
+	statusPermitidos, existe := transicoesValidas[statusAtual]
+	if !existe {
+		return false
+	}
+	
+	for _, statusPermitido := range statusPermitidos {
+		if statusPermitido == novoStatus {
+			return true
+		}
+	}
+	
+	return false

@@ -62,7 +62,7 @@ func main() {
 
 	clienteService := services.NovoClienteService(clienteRepository)
 	produtoService := services.NovoProdutoService(produtoRepository)
-	pedidoService := services.NovoPedidoService(pedidoRepository, produtoRepository)
+	pedidoService := services.NovoPedidoService(pedidoRepository, produtoRepository, pagamentoRepository)
 	pagamentoService := services.NovoPagamentoService(pagamentoRepository, pedidoService)
 
 	clienteHandler := handlers.NovoClienteHandler(clienteService)
