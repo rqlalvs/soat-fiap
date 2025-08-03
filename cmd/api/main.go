@@ -58,18 +58,21 @@ func main() {
 	clienteRepository := repositories.NovoClienteRepository(db)
 	produtoRepository := repositories.NovoProdutoRepository(db)
 	pedidoRepository := repositories.NovoPedidoRepository(db)
+	pagamentoRepository := repositories.NovoPagamentoRepository(db)
 
 	clienteService := services.NovoClienteService(clienteRepository)
 	produtoService := services.NovoProdutoService(produtoRepository)
 	pedidoService := services.NovoPedidoService(pedidoRepository, produtoRepository)
+	pagamentoService := services.NovoPagamentoService(pagamentoRepository, pedidoService)
 
 	clienteHandler := handlers.NovoClienteHandler(clienteService)
 	produtoHandler := handlers.NovoProdutoHandler(produtoService)
-	pedidoHandler := handlers.NovoPedidoHandler(pedidoService)
+	pedidoHandler := handlers.NovoPedidoHandler(pedidoService, pagamentoService)
+	pagamentoHandler := handlers.NovoPagamentoHandler(pagamentoService)
 	healthHandler := handlers.NovoHealthHandler(AppVersion)
 
 	router := mux.NewRouter()
-	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, pedidoHandler, healthHandler)
+	routes.ConfigurarRotas(router, clienteHandler, produtoHandler, pedidoHandler, pagamentoHandler, healthHandler)
 
 	// Swagger
 	router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(

@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, produtoHandler *handlers.ProdutoHandler, pedidoHandler *handlers.PedidoHandler, healthHandler *handlers.HealthHandler) {
+func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, produtoHandler *handlers.ProdutoHandler, pedidoHandler *handlers.PedidoHandler, pagamentoHandler *handlers.PagamentoHandler, healthHandler *handlers.HealthHandler) {
 	api := r.PathPrefix("/api/v1").Subrouter()
 
 	api.HandleFunc("/health", healthHandler.HealthCheck).Methods(http.MethodGet)
@@ -30,5 +30,14 @@ func ConfigurarRotas(r *mux.Router, clienteHandler *handlers.ClienteHandler, pro
 	api.HandleFunc("/pedidos", pedidoHandler.ListarPedidos).Methods(http.MethodGet)
 	api.HandleFunc("/pedidos/{id}", pedidoHandler.BuscarPedidoPorID).Methods(http.MethodGet)
 	api.HandleFunc("/pedidos/{id}/status", pedidoHandler.AtualizarStatusPedido).Methods(http.MethodPatch)
+	api.HandleFunc("/pedidos/{pedido_id}/pagamento", pagamentoHandler.ConsultarStatusPagamentoPorPedido).Methods(http.MethodGet)
+
+	api.HandleFunc("/pagamentos", pagamentoHandler.CriarPagamento).Methods(http.MethodPost)
+	api.HandleFunc("/pagamentos/{id}", pagamentoHandler.BuscarPagamentoPorID).Methods(http.MethodGet)
+	api.HandleFunc("/pagamentos/{id}/cancelar", pagamentoHandler.CancelarPagamento).Methods(http.MethodPatch)
+	api.HandleFunc("/webhook/pagamento", pagamentoHandler.WebhookPagamento).Methods(http.MethodPost)
+
+	api.HandleFunc("/mock/pagamento/{external_id}/simular", pagamentoHandler.SimularPagamento).Methods(http.MethodPost)
+
 	api.HandleFunc("/pedidos/{id}/pagamento/status", pedidoHandler.ConsultarStatusPagamento).Methods(http.MethodGet)
 }
