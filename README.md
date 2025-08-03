@@ -1,6 +1,6 @@
-# SOAT FIAP - API Lanchonete
+# SOAT FIAP - API Lanchonete 
 
-API REST para gerenciamento de pedidos de uma lanchonete, desenvolvida com arquitetura hexagonal em Go.
+API REST completa para gerenciamento de pedidos de uma lanchonete com sistema de pagamentos integrado, desenvolvida com arquitetura hexagonal em Go.
 
 ## 📋 Requisitos
 
@@ -11,25 +11,32 @@ API REST para gerenciamento de pedidos de uma lanchonete, desenvolvida com arqui
 
 ## 🚀 Tecnologias
 
-- Go 1.21
+- Go 1.23
 - MySQL 8.0
 - Docker
+- Gorilla Mux (Routing)
+- Swagger/OpenAPI (Documentação)
+- UUID (Identificadores únicos)
+- Testify (Testes unitários)
 
 ## 📁 Estrutura do Projeto
 
 ```
 .
 ├── cmd/                    # Ponto de entrada da aplicação
+│   └── api/               # API principal
 ├── configs/               # Configurações
-├── docs/                 # Documentação
+├── docs/                  # Documentação
 ├── internal/              # Código interno da aplicação
 │   ├── adapters/         # Adaptadores (primários e secundários)
 │   │   ├── primary/     # Adaptadores primários (handlers HTTP)
+│   │   │   └── handlers/ # ClienteHandler, ProdutoHandler, PedidoHandler, PagamentoHandler
 │   │   └── secondary/   # Adaptadores secundários (repositórios)
+│   │       └── repositories/ # ClienteRepository, ProdutoRepository, PedidoRepository, PagamentoRepository
 │   ├── core/            # Núcleo da aplicação
-│   │   ├── domain/     # Entidades e regras de negócio
+│   │   ├── domain/     # Entidades: Cliente, Produto, Pedido, Pagamento
 │   │   ├── ports/      # Interfaces (portas)
-│   │   └── services/   # Serviços de aplicação
+│   │   └── services/   # Serviços de aplicação + testes
 │   └── routes/          # Configuração de rotas
 └── pkg/                 # Pacotes compartilhados
     └── database/       # Configuração de banco de dados
@@ -114,11 +121,79 @@ go mod download
 
 # Executar a aplicação
 go run cmd/api/main.go
-```
+
 
 ## 📡 Endpoints da API
 
-### Clientes
+### **Checkout e Pedidos**
+
+#### Checkout Integrado com Pagamento
+```http
+POST /api/v1/checkout
+Content-Type: application/json
+
+{
+  "cliente_id": "cliente-123",
+  "itens": [
+    {
+      "produto_id": "produto-456",
+      "quantidade": 2,
+      "observacao": "Sem cebola"
+    }
+  ]
+}
+```
+
+**Resposta:**
+```json
+{
+  "pedido_id": "pedido-789",
+  "status": "RECEBIDO",
+  "valor": 25.50,
+  "pagamento_id": "pagamento-abc",
+  "qr_code": "00020126580014br.gov.bcb.pix...",
+  "external_id": "MP_12345678",
+  "expires_at": "2025-08-03T01:00:00Z",
+  "message": "Pedido criado com sucesso. Realize o pagamento via PIX para prosseguir."
+}
+```
+
+#### Pedidos
+- `GET /api/v1/pedidos` - **Listar pedidos com ordenação especial** (Pronto > Em Preparação > Recebido, mais antigos primeiro, sem finalizados)
+- `GET /api/v1/pedidos?status=EM_PREPARACAO` - Filtrar por status
+- `GET /api/v1/pedidos?cliente_id=123` - Filtrar por cliente
+- `GET /api/v1/pedidos/{id}` - Buscar pedido por ID
+- `PATCH /api/v1/pedidos/{id}/status` - **Atualizar status com validações** (cozinha só inicia após pagamento aprovado)
+
+### **Sistema de Pagamentos (Novo)**
+
+#### Consultar Status de Pagamento
+```http
+GET /api/v1/pedidos/{pedido_id}/pagamento
+```
+
+#### Webhook de Pagamento (Mercado Pago)
+```http
+POST /api/v1/webhook/pagamento
+Content-Type: application/json
+
+{
+  "external_id": "MP_12345678",
+  "status": "APROVADO"
+}
+```
+
+#### Simulação de Pagamento (Para Testes)
+```http
+POST /api/v1/mock/pagamento/{external_id}/simular?status=APROVADO
+```
+
+#### Outros Endpoints de Pagamento
+- `POST /api/v1/pagamentos` - Criar pagamento manual
+- `GET /api/v1/pagamentos/{id}` - Buscar pagamento por ID
+- `PATCH /api/v1/pagamentos/{id}/cancelar` - Cancelar pagamento
+
+### **Clientes**
 - `POST /api/v1/clientes` - Criar cliente
 - `GET /api/v1/clientes` - Listar clientes
 - `GET /api/v1/clientes/cpf/{cpf}` - Buscar cliente por CPF
