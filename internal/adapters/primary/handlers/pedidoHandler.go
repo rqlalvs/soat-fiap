@@ -6,6 +6,7 @@ import (
 	"soat-fiap/internal/core/domain"
 	"soat-fiap/internal/core/ports"
 	"sort"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -37,13 +38,40 @@ type AtualizarStatusRequest struct {
 	Status domain.StatusPedido `json:"status"`
 }
 
+type CheckoutResponse struct {
+	PedidoID    string      `json:"pedido_id"`
+	Status      string      `json:"status"`
+	Valor       float64     `json:"valor"`
+	PagamentoID string      `json:"pagamento_id"`
+	QRCode      string      `json:"qr_code"`
+	ExternalID  string      `json:"external_id"`
+	ExpiresAt   *time.Time  `json:"expires_at"`
+	Message     string      `json:"message"`
+}
+
+type AtualizarStatusResponse struct {
+	Message string `json:"message"`
+}
+
+type ConsultarStatusPagamentoResponse struct {
+	PedidoID    string      `json:"pedido_id"`
+	PagamentoID string      `json:"pagamento_id"`
+	Status      string      `json:"status"`
+	Valor       float64     `json:"valor"`
+	Tipo        string      `json:"tipo"`
+	QRCode      string      `json:"qr_code"`
+	ExternalID  string      `json:"external_id"`
+	ExpiresAt   *time.Time  `json:"expires_at"`
+	ProcessedAt *time.Time  `json:"processed_at"`
+}
+
 // CheckoutPedido cria um novo pedido e gera pagamento PIX.
 // @Summary Checkout do pedido
 // @Tags pedidos
 // @Accept json
 // @Produce json
 // @Param pedido body CriarPedidoRequest true "Dados do pedido"
-// @Success 201 {object} map[string]interface{}
+// @Success 201 {object} CheckoutResponse
 // @Failure 400 {string} string "Erro ao criar pedido"
 // @Router /checkout [post]
 func (h *PedidoHandler) CheckoutPedido(w http.ResponseWriter, r *http.Request) {
@@ -76,15 +104,15 @@ func (h *PedidoHandler) CheckoutPedido(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"pedido_id":     pedido.ID,
-		"status":        pedido.Status,
-		"valor":         pedido.ValorTotal,
-		"pagamento_id":  pagamento.ID,
-		"qr_code":       pagamento.QRCodeData,
-		"external_id":   pagamento.ExternalID,
-		"expires_at":    pagamento.ExpiresAt,
-		"message":       "Pedido criado com sucesso. Realize o pagamento via PIX para prosseguir.",
+	json.NewEncoder(w).Encode(CheckoutResponse{
+		PedidoID:    pedido.ID,
+		Status:      string(pedido.Status),
+		Valor:       pedido.ValorTotal,
+		PagamentoID: pagamento.ID,
+		QRCode:      pagamento.QRCodeData,
+		ExternalID:  pagamento.ExternalID,
+		ExpiresAt:   pagamento.ExpiresAt,
+		Message:     "Pedido criado com sucesso. Realize o pagamento via PIX para prosseguir.",
 	})
 }
 
@@ -129,7 +157,7 @@ func (h *PedidoHandler) ListarPedidos(w http.ResponseWriter, r *http.Request) {
 		
 		prioridadeA := getStatusPrioridade(pedidoA.Status)
 		prioridadeB := getStatusPrioridade(pedidoB.Status)
-		)
+		
 		if prioridadeA != prioridadeB {
 			return prioridadeA < prioridadeB
 		}
@@ -175,7 +203,7 @@ func (h *PedidoHandler) BuscarPedidoPorID(w http.ResponseWriter, r *http.Request
 // @Produce json
 // @Param id path string true "ID do pedido"
 // @Param status body AtualizarStatusRequest true "Novo status"
-// @Success 200 {object} map[string]string
+// @Success 200 {object} AtualizarStatusResponse
 // @Failure 400 {string} string "Erro ao atualizar status do pedido"
 // @Router /pedidos/{id}/status [patch]
 func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Request) {
@@ -195,17 +223,17 @@ func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Req
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"message": "Status do pedido atualizado com sucesso",
+	json.NewEncoder(w).Encode(AtualizarStatusResponse{
+		Message: "Status do pedido atualizado com sucesso",
 	})
 }
 
 // ConsultarStatusPagamento retorna o status de pagamento do pedido.
 // @Summary Consultar status de pagamento do pedido
-// @Tags pagamento
+// @Tags pagamentos
 // @Produce json
 // @Param id path string true "ID do pedido"
-// @Success 200 {object} map[string]interface{}
+// @Success 200 {object} ConsultarStatusPagamentoResponse
 // @Failure 404 {string} string "Pedido não encontrado"
 // @Router /pedidos/{id}/pagamento/status [get]
 func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.Request) {
@@ -224,16 +252,16 @@ func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"pedido_id":    pagamento.PedidoID,
-		"pagamento_id": pagamento.ID,
-		"status":       pagamento.Status,
-		"valor":        pagamento.Valor,
-		"tipo":         pagamento.Tipo,
-		"qr_code":      pagamento.QRCodeData,
-		"external_id":  pagamento.ExternalID,
-		"expires_at":   pagamento.ExpiresAt,
-		"processed_at": pagamento.ProcessedAt,
+	json.NewEncoder(w).Encode(ConsultarStatusPagamentoResponse{
+		PedidoID:    pagamento.PedidoID,
+		PagamentoID: pagamento.ID,
+		Status:      string(pagamento.Status),
+		Valor:       pagamento.Valor,
+		Tipo:        string(pagamento.Tipo),
+		QRCode:      pagamento.QRCodeData,
+		ExternalID:  pagamento.ExternalID,
+		ExpiresAt:   pagamento.ExpiresAt,
+		ProcessedAt: pagamento.ProcessedAt,
 	})
 }
 

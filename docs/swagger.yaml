@@ -42,6 +42,33 @@ definitions:
       quantidade:
         type: integer
     type: object
+  domain.Pagamento:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        type: string
+      external_id:
+        type: string
+      id:
+        type: string
+      payment_url:
+        type: string
+      pedido_id:
+        type: string
+      processed_at:
+        type: string
+      qr_code_data:
+        type: string
+      status:
+        $ref: '#/definitions/domain.StatusPagamento'
+      tipo:
+        $ref: '#/definitions/domain.TipoPagamento'
+      updated_at:
+        type: string
+      valor:
+        type: number
+    type: object
   domain.Pedido:
     properties:
       cliente_id:
@@ -80,6 +107,18 @@ definitions:
       updated_at:
         type: string
     type: object
+  domain.StatusPagamento:
+    enum:
+    - PENDENTE
+    - APROVADO
+    - RECUSADO
+    - CANCELADO
+    type: string
+    x-enum-varnames:
+    - StatusPagamentoPendente
+    - StatusPagamentoAprovado
+    - StatusPagamentoRecusado
+    - StatusPagamentoCancelado
   domain.StatusPedido:
     enum:
     - RECEBIDO
@@ -94,6 +133,16 @@ definitions:
     - StatusCancelado
     - StatusPronto
     - StatusFinalizado
+  domain.TipoPagamento:
+    enum:
+    - PIX
+    - CARTAO
+    - DINHEIRO
+    type: string
+    x-enum-varnames:
+    - TipoPagamentoPix
+    - TipoPagamentoCartao
+    - TipoPagamentoDinheiro
   handlers.AtualizarClienteRequest:
     properties:
       cpf:
@@ -122,6 +171,58 @@ definitions:
     properties:
       status:
         $ref: '#/definitions/domain.StatusPedido'
+    type: object
+  handlers.AtualizarStatusResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  handlers.CancelarPagamentoResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  handlers.CheckoutResponse:
+    properties:
+      expires_at:
+        type: string
+      external_id:
+        type: string
+      message:
+        type: string
+      pagamento_id:
+        type: string
+      pedido_id:
+        type: string
+      qr_code:
+        type: string
+      status:
+        type: string
+      valor:
+        type: number
+    type: object
+  handlers.ConsultarStatusPagamentoResponse:
+    properties:
+      expires_at:
+        type: string
+      external_id:
+        type: string
+      pagamento_id:
+        type: string
+      pedido_id:
+        type: string
+      processed_at:
+        type: string
+      qr_code:
+        type: string
+      status:
+        type: string
+      tipo:
+        type: string
+      valor:
+        type: number
     type: object
   handlers.CriarClienteRequest:
     properties:
@@ -174,6 +275,33 @@ definitions:
       version:
         type: string
     type: object
+  handlers.SimularPagamentoResponse:
+    properties:
+      external_id:
+        type: string
+      message:
+        type: string
+      new_status:
+        type: string
+      status:
+        type: string
+    type: object
+  handlers.WebhookPagamentoRequest:
+    properties:
+      action:
+        type: string
+      external_id:
+        type: string
+      status:
+        $ref: '#/definitions/domain.StatusPagamento'
+    type: object
+  handlers.WebhookResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -188,6 +316,31 @@ info:
   title: API SOAT-FIAP
   version: "1.0"
 paths:
+  /checkout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do pedido
+        in: body
+        name: pedido
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CriarPedidoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CheckoutResponse'
+        "400":
+          description: Erro ao criar pedido
+          schema:
+            type: string
+      summary: Checkout do pedido
+      tags:
+      - pedidos
   /clientes:
     get:
       produces:
@@ -336,6 +489,79 @@ paths:
       summary: Health check
       tags:
       - health
+  /mock/pagamento/{external_id}/simular:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID externo do pagamento
+        in: path
+        name: external_id
+        required: true
+        type: string
+      - description: Status para simular (APROVADO/RECUSADO)
+        in: query
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SimularPagamentoResponse'
+        "400":
+          description: Erro ao simular pagamento
+          schema:
+            type: string
+      summary: Simular pagamento (mock)
+      tags:
+      - pagamentos
+  /pagamentos/{id}:
+    get:
+      parameters:
+      - description: ID do pagamento
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Pagamento'
+        "404":
+          description: Pagamento não encontrado
+          schema:
+            type: string
+      summary: Buscar pagamento por ID
+      tags:
+      - pagamentos
+  /pagamentos/{id}/cancelar:
+    patch:
+      parameters:
+      - description: ID do pagamento
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CancelarPagamentoResponse'
+        "400":
+          description: Erro ao cancelar pagamento
+          schema:
+            type: string
+      summary: Cancelar pagamento
+      tags:
+      - pagamentos
   /pedidos:
     get:
       parameters:
@@ -363,31 +589,6 @@ paths:
       summary: Listar pedidos
       tags:
       - pedidos
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Dados do pedido
-        in: body
-        name: pedido
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.CriarPedidoRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Erro ao criar pedido
-          schema:
-            type: string
-      summary: Criar pedido
-      tags:
-      - pedidos
   /pedidos/{id}:
     get:
       parameters:
@@ -410,6 +611,28 @@ paths:
       summary: Buscar pedido por ID
       tags:
       - pedidos
+  /pedidos/{id}/pagamento/status:
+    get:
+      parameters:
+      - description: ID do pedido
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ConsultarStatusPagamentoResponse'
+        "404":
+          description: Pedido não encontrado
+          schema:
+            type: string
+      summary: Consultar status de pagamento do pedido
+      tags:
+      - pagamentos
   /pedidos/{id}/status:
     patch:
       consumes:
@@ -432,9 +655,7 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/handlers.AtualizarStatusResponse'
         "400":
           description: Erro ao atualizar status do pedido
           schema:
@@ -442,6 +663,28 @@ paths:
       summary: Atualizar status do pedido
       tags:
       - pedidos
+  /pedidos/{pedido_id}/pagamento:
+    get:
+      parameters:
+      - description: ID do pedido
+        in: path
+        name: pedido_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Pagamento'
+        "404":
+          description: Pagamento não encontrado
+          schema:
+            type: string
+      summary: Consultar status de pagamento por pedido
+      tags:
+      - pagamentos
   /produtos:
     get:
       parameters:
@@ -540,4 +783,29 @@ paths:
       summary: Atualizar produto
       tags:
       - produtos
+  /webhook/pagamento:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Dados do webhook
+        in: body
+        name: webhook
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.WebhookPagamentoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.WebhookResponse'
+        "400":
+          description: Erro ao processar webhook
+          schema:
+            type: string
+      summary: Webhook de pagamento
+      tags:
+      - pagamentos
 swagger: "2.0"

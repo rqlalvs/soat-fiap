@@ -24,6 +24,45 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/checkout": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pedidos"
+                ],
+                "summary": "Checkout do pedido",
+                "parameters": [
+                    {
+                        "description": "Dados do pedido",
+                        "name": "pedido",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CriarPedidoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CheckoutResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao criar pedido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/clientes": {
             "get": {
                 "produces": [
@@ -252,6 +291,118 @@ const docTemplate = `{
                 }
             }
         },
+        "/mock/pagamento/{external_id}/simular": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pagamentos"
+                ],
+                "summary": "Simular pagamento (mock)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID externo do pagamento",
+                        "name": "external_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Status para simular (APROVADO/RECUSADO)",
+                        "name": "status",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SimularPagamentoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao simular pagamento",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pagamentos/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pagamentos"
+                ],
+                "summary": "Buscar pagamento por ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do pagamento",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Pagamento"
+                        }
+                    },
+                    "404": {
+                        "description": "Pagamento não encontrado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pagamentos/{id}/cancelar": {
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pagamentos"
+                ],
+                "summary": "Cancelar pagamento",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do pagamento",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CancelarPagamentoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao cancelar pagamento",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/pedidos": {
             "get": {
                 "produces": [
@@ -292,44 +443,6 @@ const docTemplate = `{
                         }
                     }
                 }
-            },
-            "post": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "pedidos"
-                ],
-                "summary": "Criar pedido",
-                "parameters": [
-                    {
-                        "description": "Dados do pedido",
-                        "name": "pedido",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/handlers.CriarPedidoRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Erro ao criar pedido",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
             }
         },
         "/pedidos/{id}": {
@@ -355,6 +468,40 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/domain.Pedido"
+                        }
+                    },
+                    "404": {
+                        "description": "Pedido não encontrado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pedidos/{id}/pagamento/status": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pagamentos"
+                ],
+                "summary": "Consultar status de pagamento do pedido",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do pedido",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ConsultarStatusPagamentoResponse"
                         }
                     },
                     "404": {
@@ -400,14 +547,45 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/handlers.AtualizarStatusResponse"
                         }
                     },
                     "400": {
                         "description": "Erro ao atualizar status do pedido",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pedidos/{pedido_id}/pagamento": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pagamentos"
+                ],
+                "summary": "Consultar status de pagamento por pedido",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do pedido",
+                        "name": "pedido_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Pagamento"
+                        }
+                    },
+                    "404": {
+                        "description": "Pagamento não encontrado",
                         "schema": {
                             "type": "string"
                         }
@@ -565,6 +743,45 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/webhook/pagamento": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "pagamentos"
+                ],
+                "summary": "Webhook de pagamento",
+                "parameters": [
+                    {
+                        "description": "Dados do webhook",
+                        "name": "webhook",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.WebhookPagamentoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.WebhookResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao processar webhook",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -629,6 +846,47 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.Pagamento": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payment_url": {
+                    "type": "string"
+                },
+                "pedido_id": {
+                    "type": "string"
+                },
+                "processed_at": {
+                    "type": "string"
+                },
+                "qr_code_data": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.StatusPagamento"
+                },
+                "tipo": {
+                    "$ref": "#/definitions/domain.TipoPagamento"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "valor": {
+                    "type": "number"
+                }
+            }
+        },
         "domain.Pedido": {
             "type": "object",
             "properties": {
@@ -687,14 +945,29 @@ const docTemplate = `{
                 }
             }
         },
+        "domain.StatusPagamento": {
+            "type": "string",
+            "enum": [
+                "PENDENTE",
+                "APROVADO",
+                "RECUSADO",
+                "CANCELADO"
+            ],
+            "x-enum-varnames": [
+                "StatusPagamentoPendente",
+                "StatusPagamentoAprovado",
+                "StatusPagamentoRecusado",
+                "StatusPagamentoCancelado"
+            ]
+        },
         "domain.StatusPedido": {
             "type": "string",
             "enum": [
                 "RECEBIDO",
                 "EM_PREPARACAO",
+                "CANCELADO",
                 "PRONTO",
-                "FINALIZADO",
-                "CANCELADO"
+                "FINALIZADO"
             ],
             "x-enum-varnames": [
                 "StatusRecebido",
@@ -702,6 +975,19 @@ const docTemplate = `{
                 "StatusCancelado",
                 "StatusPronto",
                 "StatusFinalizado"
+            ]
+        },
+        "domain.TipoPagamento": {
+            "type": "string",
+            "enum": [
+                "PIX",
+                "CARTAO",
+                "DINHEIRO"
+            ],
+            "x-enum-varnames": [
+                "TipoPagamentoPix",
+                "TipoPagamentoCartao",
+                "TipoPagamentoDinheiro"
             ]
         },
         "handlers.AtualizarClienteRequest": {
@@ -746,6 +1032,86 @@ const docTemplate = `{
             "properties": {
                 "status": {
                     "$ref": "#/definitions/domain.StatusPedido"
+                }
+            }
+        },
+        "handlers.AtualizarStatusResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CancelarPagamentoResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CheckoutResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pagamento_id": {
+                    "type": "string"
+                },
+                "pedido_id": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "valor": {
+                    "type": "number"
+                }
+            }
+        },
+        "handlers.ConsultarStatusPagamentoResponse": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "pagamento_id": {
+                    "type": "string"
+                },
+                "pedido_id": {
+                    "type": "string"
+                },
+                "processed_at": {
+                    "type": "string"
+                },
+                "qr_code": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "tipo": {
+                    "type": "string"
+                },
+                "valor": {
+                    "type": "number"
                 }
             }
         },
@@ -824,6 +1190,48 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.SimularPagamentoResponse": {
+            "type": "object",
+            "properties": {
+                "external_id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "new_status": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.WebhookPagamentoRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "external_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/domain.StatusPagamento"
+                }
+            }
+        },
+        "handlers.WebhookResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "status": {
                     "type": "string"
                 }
             }
