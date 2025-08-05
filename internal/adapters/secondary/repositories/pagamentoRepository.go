@@ -202,21 +202,45 @@ func (r *PagamentoRepository) scanPagamento(row *sql.Row) (*domain.Pagamento, er
 		return nil, err
 	}
 
-	// Parse das datas
+	// Parse das datas - try multiple formats
 	pagamento.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAtStr)
 	if err != nil {
-		return nil, err
+		// Try MySQL timestamp format
+		pagamento.CreatedAt, err = time.Parse("2006-01-02T15:04:05Z", createdAtStr)
+		if err != nil {
+			// Try MySQL datetime format
+			pagamento.CreatedAt, err = time.Parse("2006-01-02 15:04:05.000000", createdAtStr)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	pagamento.UpdatedAt, err = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 	if err != nil {
-		return nil, err
+		// Try MySQL timestamp format
+		pagamento.UpdatedAt, err = time.Parse("2006-01-02T15:04:05Z", updatedAtStr)
+		if err != nil {
+			// Try MySQL datetime format
+			pagamento.UpdatedAt, err = time.Parse("2006-01-02 15:04:05.000000", updatedAtStr)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if expiresAt.Valid {
 		expiresAtTime, err := time.Parse("2006-01-02 15:04:05", expiresAt.String)
 		if err != nil {
-			return nil, err
+			// Try MySQL timestamp format
+			expiresAtTime, err = time.Parse("2006-01-02T15:04:05Z", expiresAt.String)
+			if err != nil {
+				// Try MySQL datetime format
+				expiresAtTime, err = time.Parse("2006-01-02 15:04:05.000000", expiresAt.String)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 		pagamento.ExpiresAt = &expiresAtTime
 	}
@@ -224,7 +248,15 @@ func (r *PagamentoRepository) scanPagamento(row *sql.Row) (*domain.Pagamento, er
 	if processedAt.Valid {
 		processedAtTime, err := time.Parse("2006-01-02 15:04:05", processedAt.String)
 		if err != nil {
-			return nil, err
+			// Try MySQL timestamp format
+			processedAtTime, err = time.Parse("2006-01-02T15:04:05Z", processedAt.String)
+			if err != nil {
+				// Try MySQL datetime format
+				processedAtTime, err = time.Parse("2006-01-02 15:04:05.000000", processedAt.String)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 		pagamento.ProcessedAt = &processedAtTime
 	}
@@ -259,21 +291,45 @@ func (r *PagamentoRepository) scanPagamentos(rows *sql.Rows) ([]*domain.Pagament
 			return nil, err
 		}
 
-		// Parse das datas
+		// Parse das datas - try multiple formats
 		pagamento.CreatedAt, err = time.Parse("2006-01-02 15:04:05", createdAtStr)
 		if err != nil {
-			return nil, err
+			// Try MySQL timestamp format
+			pagamento.CreatedAt, err = time.Parse("2006-01-02T15:04:05Z", createdAtStr)
+			if err != nil {
+				// Try MySQL datetime format
+				pagamento.CreatedAt, err = time.Parse("2006-01-02 15:04:05.000000", createdAtStr)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 
 		pagamento.UpdatedAt, err = time.Parse("2006-01-02 15:04:05", updatedAtStr)
 		if err != nil {
-			return nil, err
+			// Try MySQL timestamp format
+			pagamento.UpdatedAt, err = time.Parse("2006-01-02T15:04:05Z", updatedAtStr)
+			if err != nil {
+				// Try MySQL datetime format
+				pagamento.UpdatedAt, err = time.Parse("2006-01-02 15:04:05.000000", updatedAtStr)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 
 		if expiresAt.Valid {
 			expiresAtTime, err := time.Parse("2006-01-02 15:04:05", expiresAt.String)
 			if err != nil {
-				return nil, err
+				// Try MySQL timestamp format
+				expiresAtTime, err = time.Parse("2006-01-02T15:04:05Z", expiresAt.String)
+				if err != nil {
+					// Try MySQL datetime format
+					expiresAtTime, err = time.Parse("2006-01-02 15:04:05.000000", expiresAt.String)
+					if err != nil {
+						return nil, err
+					}
+				}
 			}
 			pagamento.ExpiresAt = &expiresAtTime
 		}
@@ -281,7 +337,15 @@ func (r *PagamentoRepository) scanPagamentos(rows *sql.Rows) ([]*domain.Pagament
 		if processedAt.Valid {
 			processedAtTime, err := time.Parse("2006-01-02 15:04:05", processedAt.String)
 			if err != nil {
-				return nil, err
+				// Try MySQL timestamp format
+				processedAtTime, err = time.Parse("2006-01-02T15:04:05Z", processedAt.String)
+				if err != nil {
+					// Try MySQL datetime format
+					processedAtTime, err = time.Parse("2006-01-02 15:04:05.000000", processedAt.String)
+					if err != nil {
+						return nil, err
+					}
+				}
 			}
 			pagamento.ProcessedAt = &processedAtTime
 		}

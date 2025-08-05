@@ -28,6 +28,7 @@ func ConectarMySQL(host, port, user, password, dbname string) (*sql.DB, error) {
 
 func iniciarTabelas(db *sql.DB) error {
 	queries := []string{
+		`DROP TABLE IF EXISTS pagamentos`,
 		`DROP TABLE IF EXISTS pedido_itens`,
 		`DROP TABLE IF EXISTS pedidos`,
 		`DROP TABLE IF EXISTS clientes`,
@@ -74,6 +75,25 @@ func iniciarTabelas(db *sql.DB) error {
 			observacao TEXT NULL,
 			FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
 			INDEX idx_pedido_id (pedido_id)
+		)`,
+		`DROP TABLE IF EXISTS pagamentos`,
+		`CREATE TABLE IF NOT EXISTS pagamentos (
+			id VARCHAR(36) PRIMARY KEY,
+			pedido_id VARCHAR(36) NOT NULL,
+			valor DECIMAL(10,2) NOT NULL,
+			status VARCHAR(20) NOT NULL,
+			tipo VARCHAR(20) NOT NULL,
+			qr_code_data TEXT NULL,
+			external_id VARCHAR(100) NULL,
+			payment_url TEXT NULL,
+			expires_at DATETIME NULL,
+			processed_at DATETIME NULL,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
+			FOREIGN KEY (pedido_id) REFERENCES pedidos(id) ON DELETE CASCADE,
+			INDEX idx_pedido_id (pedido_id),
+			INDEX idx_external_id (external_id),
+			INDEX idx_status (status)
 		)`,
 	}
 

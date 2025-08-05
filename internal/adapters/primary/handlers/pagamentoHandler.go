@@ -31,15 +31,33 @@ type WebhookPagamentoRequest struct {
 	Action     string                 `json:"action,omitempty"`
 }
 
+type WebhookResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type CancelarPagamentoResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type SimularPagamentoResponse struct {
+	Status     string `json:"status"`
+	Message    string `json:"message"`
+	ExternalID string `json:"external_id"`
+	NewStatus  string `json:"new_status"`
+}
+
 // CriarPagamento cria um novo pagamento para um pedido.
 // @Summary Criar pagamento
-// @Tags pagamento
+// @Tags pagamentos
 // @Accept json
 // @Produce json
 // @Param pagamento body CriarPagamentoRequest true "Dados do pagamento"
 // @Success 201 {object} domain.Pagamento
 // @Failure 400 {string} string "Erro ao criar pagamento"
 // @Router /pagamentos [post]
+
 func (h *PagamentoHandler) CriarPagamento(w http.ResponseWriter, r *http.Request) {
 	var req CriarPagamentoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,7 +78,7 @@ func (h *PagamentoHandler) CriarPagamento(w http.ResponseWriter, r *http.Request
 
 // BuscarPagamentoPorID busca um pagamento pelo ID.
 // @Summary Buscar pagamento por ID
-// @Tags pagamento
+// @Tags pagamentos
 // @Produce json
 // @Param id path string true "ID do pagamento"
 // @Success 200 {object} domain.Pagamento
@@ -87,7 +105,7 @@ func (h *PagamentoHandler) BuscarPagamentoPorID(w http.ResponseWriter, r *http.R
 
 // ConsultarStatusPagamentoPorPedido consulta o status de pagamento de um pedido.
 // @Summary Consultar status de pagamento por pedido
-// @Tags pagamento
+// @Tags pagamentos
 // @Produce json
 // @Param pedido_id path string true "ID do pedido"
 // @Success 200 {object} domain.Pagamento
@@ -114,11 +132,11 @@ func (h *PagamentoHandler) ConsultarStatusPagamentoPorPedido(w http.ResponseWrit
 
 // WebhookPagamento recebe notificações de pagamento do Mercado Pago ou sistema externo.
 // @Summary Webhook de pagamento
-// @Tags pagamento
+// @Tags pagamentos
 // @Accept json
 // @Produce json
 // @Param webhook body WebhookPagamentoRequest true "Dados do webhook"
-// @Success 200 {object} map[string]string
+// @Success 200 {object} WebhookResponse
 // @Failure 400 {string} string "Erro ao processar webhook"
 // @Router /webhook/pagamento [post]
 func (h *PagamentoHandler) WebhookPagamento(w http.ResponseWriter, r *http.Request) {
@@ -147,18 +165,18 @@ func (h *PagamentoHandler) WebhookPagamento(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
-		"status":  "success",
-		"message": "Webhook processado com sucesso",
+	json.NewEncoder(w).Encode(WebhookResponse{
+		Status:  "success",
+		Message: "Webhook processado com sucesso",
 	})
 }
 
 // CancelarPagamento cancela um pagamento.
 // @Summary Cancelar pagamento
-// @Tags pagamento
+// @Tags pagamentos
 // @Produce json
 // @Param id path string true "ID do pagamento"
-// @Success 200 {object} map[string]string
+// @Success 200 {object} CancelarPagamentoResponse
 // @Failure 400 {string} string "Erro ao cancelar pagamento"
 // @Router /pagamentos/{id}/cancelar [patch]
 func (h *PagamentoHandler) CancelarPagamento(w http.ResponseWriter, r *http.Request) {
@@ -172,20 +190,20 @@ func (h *PagamentoHandler) CancelarPagamento(w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"status":  "success",
-		"message": "Pagamento cancelado com sucesso",
+	json.NewEncoder(w).Encode(CancelarPagamentoResponse{
+		Status:  "success",
+		Message: "Pagamento cancelado com sucesso",
 	})
 }
 
 // SimularPagamento simula aprovação/recusa de pagamento para testes (mock).
 // @Summary Simular pagamento (mock)
-// @Tags pagamento
+// @Tags pagamentos
 // @Accept json
 // @Produce json
 // @Param external_id path string true "ID externo do pagamento"
 // @Param status query string true "Status para simular (APROVADO/RECUSADO)"
-// @Success 200 {object} map[string]string
+// @Success 200 {object} SimularPagamentoResponse
 // @Failure 400 {string} string "Erro ao simular pagamento"
 // @Router /mock/pagamento/{external_id}/simular [post]
 func (h *PagamentoHandler) SimularPagamento(w http.ResponseWriter, r *http.Request) {
@@ -218,10 +236,10 @@ func (h *PagamentoHandler) SimularPagamento(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
-		"status":     "success",
-		"message":    "Pagamento simulado com sucesso",
-		"external_id": externalID,
-		"new_status": string(status),
+	json.NewEncoder(w).Encode(SimularPagamentoResponse{
+		Status:     "success",
+		Message:    "Pagamento simulado com sucesso",
+		ExternalID: externalID,
+		NewStatus:  string(status),
 	})
 }

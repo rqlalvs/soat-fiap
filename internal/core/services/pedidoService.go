@@ -152,3 +152,4 @@ func (s *PedidoService) isTransicaoValida(statusAtual, novoStatus domain.StatusP
 	}
 	
 	return false
+}
