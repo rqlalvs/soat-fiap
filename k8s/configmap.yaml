@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: soat-fiap-config
+  namespace: soat-fiap
+data:
+  SERVER_PORT: "8080"
+  DB_HOST: "mysql-service"
+  DB_PORT: "3306"
+  DB_NAME: "soat_fiap"
+  LOG_LEVEL: "info"
+  SWAGGER_ENABLE: "true"
