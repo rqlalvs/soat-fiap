@@ -1,0 +1,1292 @@
+{
+	"info": {
+		"_postman_id": "6819430e-9cc9-4a50-a159-00e163d87002",
+		"name": "SOAT FIAP - API Collection",
+		"description": "Coleção para testar todos os endpoints da API do SOAT FIAP, incluindo health, clientes, produtos, pedidos e pagamentos.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20651163"
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Clientes",
+			"item": [
+				{
+					"name": "Criar Cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"cliente_id\", responseJson.id);",
+									"    pm.environment.set(\"cliente_cpf\", responseJson.cpf);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"João Silva\",\n    \"cpf\": \"10776954032\",\n    \"email\": \"joao.silva@email.com\",\n    \"telefone\": \"11999999999\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Clientes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Cliente por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes",
+								"{{cliente_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Cliente por CPF",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes/cpf/{{cliente_cpf}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes",
+								"cpf",
+								"{{cliente_cpf}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Cliente",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"João Silva Atualizado\",\n    \"cpf\": \"10776954032\",\n    \"email\": \"joao.silva.atualizado@email.com\",\n    \"telefone\": \"11988888888\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes",
+								"{{cliente_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Cliente",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes/{{cliente_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes",
+								"{{cliente_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Produtos",
+			"item": [
+				{
+					"name": "Criar Produto - Lanche",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"produto_lanche_id\", responseJson.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"X-Burger Especial\",\n    \"descricao\": \"Hambúrguer com queijo, alface, tomate e molho especial\",\n    \"preco\": 25.50,\n    \"categoria\": \"LANCHE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Produto - Acompanhamento",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"produto_acompanhamento_id\", responseJson.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"Batata Frita\",\n    \"descricao\": \"Porção de batata frita crocante\",\n    \"preco\": 12.00,\n    \"categoria\": \"ACOMPANHAMENTO\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Produto - Bebida",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"produto_bebida_id\", responseJson.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"Coca-Cola\",\n    \"descricao\": \"Refrigerante Coca-Cola 350ml\",\n    \"preco\": 8.50,\n    \"categoria\": \"BEBIDA\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Produto - Sobremesa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"produto_sobremesa_id\", responseJson.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"Sorvete de Chocolate\",\n    \"descricao\": \"Sorvete cremoso de chocolate com cobertura\",\n    \"preco\": 15.00,\n    \"categoria\": \"SOBREMESA\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Produtos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Produtos por Categoria - LANCHE",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos?categoria=LANCHE",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							],
+							"query": [
+								{
+									"key": "categoria",
+									"value": "LANCHE"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Produtos por Categoria - BEBIDA",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos?categoria=BEBIDA",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							],
+							"query": [
+								{
+									"key": "categoria",
+									"value": "BEBIDA"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Produto por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos/{{produto_lanche_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos",
+								"{{produto_lanche_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Produto",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"X-Burger Especial Atualizado\",\n    \"descricao\": \"Hambúrguer com queijo, alface, tomate, bacon e molho especial\",\n    \"preco\": 28.50,\n    \"categoria\": \"LANCHE\",\n    \"disponivel\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos/{{produto_lanche_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos",
+								"{{produto_lanche_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Produto",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos/{{produto_sobremesa_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos",
+								"{{produto_sobremesa_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pedidos",
+			"item": [
+				{
+					"name": "Checkout Pedido - Com Cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"pedido_id\", responseJson.pedido_id);",
+									"    pm.environment.set(\"pagamento_id\", responseJson.pagamento_id);",
+									"    pm.environment.set(\"external_id\", responseJson.external_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cliente_id\": \"{{cliente_id}}\",\n    \"itens\": [\n        {\n            \"produto_id\": \"{{produto_lanche_id}}\",\n            \"quantidade\": 1,\n            \"observacao\": \"Sem cebola\"\n        },\n        {\n            \"produto_id\": \"{{produto_acompanhamento_id}}\",\n            \"quantidade\": 1\n        },\n        {\n            \"produto_id\": \"{{produto_bebida_id}}\",\n            \"quantidade\": 2,\n            \"observacao\": \"Gelada\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/checkout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Checkout Pedido - Sem Cliente (Anonimo)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"pedido_anonimo_id\", responseJson.pedido_id);",
+									"    pm.environment.set(\"pagamento_anonimo_id\", responseJson.pagamento_id);",
+									"    pm.environment.set(\"external_anonimo_id\", responseJson.external_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"itens\": [\n        {\n            \"produto_id\": \"{{produto_lanche_id}}\",\n            \"quantidade\": 2\n        },\n        {\n            \"produto_id\": \"{{produto_bebida_id}}\",\n            \"quantidade\": 1\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/checkout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Pedidos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pedidos por Status - RECEBIDO",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos?status=RECEBIDO",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "RECEBIDO"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Pedidos por Cliente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos?cliente_id={{cliente_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos"
+							],
+							"query": [
+								{
+									"key": "cliente_id",
+									"value": "{{cliente_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Pedido por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos/{{pedido_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos",
+								"{{pedido_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Status do Pedido - EM_PREPARACAO",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"EM_PREPARACAO\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos/{{pedido_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos",
+								"{{pedido_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Status do Pedido - PRONTO",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"PRONTO\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos/{{pedido_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos",
+								"{{pedido_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Status do Pedido - FINALIZADO",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"FINALIZADO\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos/{{pedido_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos",
+								"{{pedido_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Status de Pagamento do Pedido",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos/{{pedido_id}}/pagamento/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos",
+								"{{pedido_id}}",
+								"pagamento",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pagamentos",
+			"item": [
+				{
+					"name": "Criar Pagamento Manual",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var responseJson = pm.response.json();",
+									"    pm.environment.set(\"pagamento_manual_id\", responseJson.id);",
+									"    pm.environment.set(\"external_manual_id\", responseJson.external_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"pedido_id\": \"{{pedido_anonimo_id}}\",\n    \"valor\": 62.50,\n    \"tipo\": \"PIX\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/pagamentos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pagamentos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Pagamento por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pagamentos/{{pagamento_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pagamentos",
+								"{{pagamento_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Status Pagamento por Pedido",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pedidos/{{pedido_id}}/pagamento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pedidos",
+								"{{pedido_id}}",
+								"pagamento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Webhook Pagamento - APROVADO",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"external_id\": \"{{external_id}}\",\n    \"status\": \"APROVADO\",\n    \"action\": \"payment.updated\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/webhook/pagamento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webhook",
+								"pagamento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Webhook Pagamento - RECUSADO",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"external_id\": \"{{external_anonimo_id}}\",\n    \"status\": \"RECUSADO\",\n    \"action\": \"payment.updated\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/webhook/pagamento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webhook",
+								"pagamento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancelar Pagamento",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/pagamentos/{{pagamento_manual_id}}/cancelar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"pagamentos",
+								"{{pagamento_manual_id}}",
+								"cancelar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Simular Pagamento - APROVADO",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mock/pagamento/{{external_id}}/simular?status=APROVADO",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mock",
+								"pagamento",
+								"{{external_id}}",
+								"simular"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "APROVADO"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Simular Pagamento - RECUSADO",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mock/pagamento/{{external_anonimo_id}}/simular?status=RECUSADO",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mock",
+								"pagamento",
+								"{{external_anonimo_id}}",
+								"simular"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "RECUSADO"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Simular Pagamento - CANCELADO",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mock/pagamento/{{external_manual_id}}/simular?status=CANCELADO",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mock",
+								"pagamento",
+								"{{external_manual_id}}",
+								"simular"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "CANCELADO"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "Criar Cliente - CPF Inválido",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"Cliente Inválido\",\n    \"cpf\": \"123\",\n    \"email\": \"email-invalido\",\n    \"telefone\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Produto - Categoria Inválida",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"nome\": \"Produto Inválido\",\n    \"descricao\": \"\",\n    \"preco\": -10.0,\n    \"categoria\": \"CATEGORIA_INEXISTENTE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/produtos",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"produtos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Checkout Pedido - Produto Inexistente",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"itens\": [\n        {\n            \"produto_id\": \"produto-inexistente-123\",\n            \"quantidade\": 1\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/checkout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"checkout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Cliente Inexistente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/clientes/cliente-inexistente-123",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"clientes",
+								"cliente-inexistente-123"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Webhook Pagamento - External ID Vazio",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"external_id\": \"\",\n    \"status\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/webhook/pagamento",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"webhook",
+								"pagamento"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Simular Pagamento - Status Inválido",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mock/pagamento/{{external_id}}/simular?status=STATUS_INVALIDO",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mock",
+								"pagamento",
+								"{{external_id}}",
+								"simular"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "STATUS_INVALIDO"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "cliente_id",
+			"value": "3205bce5-ff49-49d5-a776-9c8a1f6ac617",
+			"type": "default"
+		},
+		{
+			"key": "produto_lanche_id",
+			"value": "56e4d40b-0b65-4eda-a5cd-22aac5a62c0a",
+			"type": "default"
+		},
+		{
+			"key": "produto_bebida_id",
+			"value": "a0d7a44e-8aa5-47b8-bb01-25092b1ebd8a",
+			"type": "default"
+		},
+		{
+			"key": "produto_acompanhamento_id",
+			"value": "54fc63d4-c123-46e0-9309-75c3d88a9975",
+			"type": "default"
+		},
+		{
+			"key": "pedido_id",
+			"value": "eee9a305-335f-4ddb-90f6-e7492694a7b0",
+			"type": "default"
+		},
+		{
+			"key": "pedido_anonimo_id",
+			"value": "eee9a305-335f-4ddb-90f6-e7492694a7b0",
+			"type": "default"
+		},
+		{
+			"key": "external_id",
+			"value": "MP_ba5a964e",
+			"type": "default"
+		},
+		{
+			"key": "pagamento_id",
+			"value": "fc835174-6062-467b-8082-2332112448a2",
+			"type": "default"
+		},
+		{
+			"key": "external_anonimo_id",
+			"value": "MP_ba5a964e",
+			"type": "default"
+		},
+		{
+			"key": "external_manual_id",
+			"value": "MP_ba5a964e",
+			"type": "default"
+		}
+	]
+}
