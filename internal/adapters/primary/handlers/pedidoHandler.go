@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"soat-fiap/internal/adapters/primary/dtos"
+	"soat-fiap/internal/adapters/primary/presenters"
 	"soat-fiap/internal/core/domain"
 	"soat-fiap/internal/core/ports"
 	"sort"
@@ -14,55 +16,23 @@ import (
 type PedidoHandler struct {
 	pedidoService    ports.PedidoService
 	pagamentoService ports.PagamentoService
+	presenter        *presenters.PedidoPresenter
 }
 
-func NovoPedidoHandler(pedidoService ports.PedidoService, pagamentoService ports.PagamentoService) *PedidoHandler {
+func NovoPedidoHandler(
+	pedidoService ports.PedidoService, 
+	pagamentoService ports.PagamentoService,
+) *PedidoHandler {
 	return &PedidoHandler{
 		pedidoService:    pedidoService,
 		pagamentoService: pagamentoService,
+		presenter:        presenters.NewPedidoPresenter(),
 	}
 }
 
-type CriarPedidoRequest struct {
-	ClienteID *string                  `json:"cliente_id,omitempty"`
-	Itens     []CriarItemPedidoRequest `json:"itens"`
-}
-
-type CriarItemPedidoRequest struct {
-	ProdutoID  string `json:"produto_id"`
-	Quantidade int    `json:"quantidade"`
-	Observacao string `json:"observacao,omitempty"`
-}
 
 type AtualizarStatusRequest struct {
 	Status domain.StatusPedido `json:"status"`
-}
-
-type CheckoutResponse struct {
-	PedidoID    string      `json:"pedido_id"`
-	Status      string      `json:"status"`
-	Valor       float64     `json:"valor"`
-	PagamentoID string      `json:"pagamento_id"`
-	QRCode      string      `json:"qr_code"`
-	ExternalID  string      `json:"external_id"`
-	ExpiresAt   *time.Time  `json:"expires_at"`
-	Message     string      `json:"message"`
-}
-
-type AtualizarStatusResponse struct {
-	Message string `json:"message"`
-}
-
-type ConsultarStatusPagamentoResponse struct {
-	PedidoID    string      `json:"pedido_id"`
-	PagamentoID string      `json:"pagamento_id"`
-	Status      string      `json:"status"`
-	Valor       float64     `json:"valor"`
-	Tipo        string      `json:"tipo"`
-	QRCode      string      `json:"qr_code"`
-	ExternalID  string      `json:"external_id"`
-	ExpiresAt   *time.Time  `json:"expires_at"`
-	ProcessedAt *time.Time  `json:"processed_at"`
 }
 
 // CheckoutPedido cria um novo pedido e gera pagamento PIX.
@@ -70,50 +40,62 @@ type ConsultarStatusPagamentoResponse struct {
 // @Tags pedidos
 // @Accept json
 // @Produce json
-// @Param pedido body CriarPedidoRequest true "Dados do pedido"
-// @Success 201 {object} CheckoutResponse
+// @Param pedido body dtos.PedidoRequest true "Dados do pedido"
+// @Success 201 {object} map[string]interface{}
 // @Failure 400 {string} string "Erro ao criar pedido"
 // @Router /checkout [post]
 func (h *PedidoHandler) CheckoutPedido(w http.ResponseWriter, r *http.Request) {
-	var req CriarPedidoRequest
+	var req dtos.PedidoRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Erro ao decodificar requisição: "+err.Error(), http.StatusBadRequest)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	itens := make([]domain.ItemPedido, len(req.Itens))
-	for i, item := range req.Itens {
-		itens[i] = domain.ItemPedido{
-			ProdutoID:  item.ProdutoID,
-			Quantidade: item.Quantidade,
-			Observacao: item.Observacao,
-		}
-	}
-
-	pedido, err := h.pedidoService.CriarPedido(r.Context(), req.ClienteID, itens)
+	pedido, err := req.ToDomain()
 	if err != nil {
-		http.Error(w, "Erro ao criar pedido: "+err.Error(), http.StatusBadRequest)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	pagamento, err := h.pagamentoService.CriarPagamento(r.Context(), pedido.ID, pedido.ValorTotal, domain.TipoPagamentoPix)
+	createdPedido, err := h.pedidoService.CriarPedido(r.Context(), pedido.ClienteID, pedido.Itens)
 	if err != nil {
-		http.Error(w, "Erro ao criar pagamento: "+err.Error(), http.StatusInternalServerError)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
+	}
+
+	pagamento, err := h.pagamentoService.CriarPagamento(
+		r.Context(), 
+		createdPedido.ID, 
+		createdPedido.ValorTotal, 
+		domain.TipoPagamentoPix,
+	)
+	if err != nil {
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	response := map[string]interface{}{
+		"pedido_id":    createdPedido.ID,
+		"status":       string(createdPedido.Status),
+		"valor":        createdPedido.ValorTotal,
+		"pagamento_id": pagamento.ID,
+		"qr_code":      pagamento.QRCode,
+		"external_id":  pagamento.ExternalID,
+		"expires_at":   pagamento.ExpiresAt,
+		"message":      "Pedido criado com sucesso. Realize o pagamento via PIX para prosseguir.",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(CheckoutResponse{
-		PedidoID:    pedido.ID,
-		Status:      string(pedido.Status),
-		Valor:       pedido.ValorTotal,
-		PagamentoID: pagamento.ID,
-		QRCode:      pagamento.QRCodeData,
-		ExternalID:  pagamento.ExternalID,
-		ExpiresAt:   pagamento.ExpiresAt,
-		Message:     "Pedido criado com sucesso. Realize o pagamento via PIX para prosseguir.",
-	})
+	json.NewEncoder(w).Encode(response)
 }
 
 // ListarPedidos retorna pedidos com ordenação específica: Pronto > Em preparação > Recebido, mais antigos primeiro, não exibe finalizados.
@@ -132,41 +114,40 @@ func (h *PedidoHandler) ListarPedidos(w http.ResponseWriter, r *http.Request) {
 	var pedidos []*domain.Pedido
 	var err error
 
-	if status != "" {
+	switch {
+	case status != "":
 		pedidos, err = h.pedidoService.ListarPedidosPorStatus(r.Context(), domain.StatusPedido(status))
-	} else if clienteID != "" {
+	case clienteID != "":
 		pedidos, err = h.pedidoService.ListarPedidosPorCliente(r.Context(), clienteID)
-	} else {
+	default:
 		pedidos, err = h.pedidoService.ListarPedidos(r.Context())
 	}
 
 	if err != nil {
-		http.Error(w, "Erro ao listar pedidos: "+err.Error(), http.StatusInternalServerError)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	pedidosFiltrados := make([]*domain.Pedido, 0)
-	for _, pedido := range pedidos {
-		if pedido.Status != domain.StatusFinalizado {
-			pedidosFiltrados = append(pedidosFiltrados, pedido)
+	var filteredPedidos []*domain.Pedido
+	for _, p := range pedidos {
+		if p.Status != domain.StatusFinalizado {
+			filteredPedidos = append(filteredPedidos, p)
 		}
 	}
 
-	sort.Slice(pedidosFiltrados, func(i, j int) bool {
-		pedidoA, pedidoB := pedidosFiltrados[i], pedidosFiltrados[j]
-		
-		prioridadeA := getStatusPrioridade(pedidoA.Status)
-		prioridadeB := getStatusPrioridade(pedidoB.Status)
-		
-		if prioridadeA != prioridadeB {
-			return prioridadeA < prioridadeB
+
+	sort.Slice(filteredPedidos, func(i, j int) bool {
+		if filteredPedidos[i].Status == filteredPedidos[j].Status {
+			return filteredPedidos[i].CreatedAt.Before(filteredPedidos[j].CreatedAt)
 		}
-		
-		return pedidoA.CreatedAt.Before(pedidoB.CreatedAt)
+		return getStatusPrioridade(filteredPedidos[i].Status) > getStatusPrioridade(filteredPedidos[j].Status)
 	})
 
+	response := h.presenter.PresentList(filteredPedidos)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pedidosFiltrados)
+	json.NewEncoder(w).Encode(response)
 }
 
 // BuscarPedidoPorID retorna um pedido pelo ID.
@@ -183,7 +164,9 @@ func (h *PedidoHandler) BuscarPedidoPorID(w http.ResponseWriter, r *http.Request
 
 	pedido, err := h.pedidoService.BuscarPedidoPorID(r.Context(), id)
 	if err != nil {
-		http.Error(w, "Erro ao buscar pedido: "+err.Error(), http.StatusInternalServerError)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
@@ -192,8 +175,9 @@ func (h *PedidoHandler) BuscarPedidoPorID(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	response := h.presenter.Present(pedido)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(pedido)
+	json.NewEncoder(w).Encode(response)
 }
 
 // AtualizarStatusPedido atualiza o status de um pedido.
@@ -203,7 +187,7 @@ func (h *PedidoHandler) BuscarPedidoPorID(w http.ResponseWriter, r *http.Request
 // @Produce json
 // @Param id path string true "ID do pedido"
 // @Param status body AtualizarStatusRequest true "Novo status"
-// @Success 200 {object} AtualizarStatusResponse
+// @Success 200 {object} map[string]interface{}
 // @Failure 400 {string} string "Erro ao atualizar status do pedido"
 // @Router /pedidos/{id}/status [patch]
 func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Request) {
@@ -212,20 +196,23 @@ func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Req
 
 	var req AtualizarStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Erro ao decodificar requisição: "+err.Error(), http.StatusBadRequest)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	err := h.pedidoService.AtualizarStatusPedido(r.Context(), id, req.Status)
 	if err != nil {
-		http.Error(w, "Erro ao atualizar status do pedido: "+err.Error(), http.StatusBadRequest)
+		status, response := h.presenter.PresentError(err)
+		w.WriteHeader(status)
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(AtualizarStatusResponse{
-		Message: "Status do pedido atualizado com sucesso",
-	})
+	status, response := h.presenter.PresentSuccess("Status do pedido atualizado com sucesso", nil)
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(response)
 }
 
 // ConsultarStatusPagamento retorna o status de pagamento do pedido.
@@ -233,7 +220,7 @@ func (h *PedidoHandler) AtualizarStatusPedido(w http.ResponseWriter, r *http.Req
 // @Tags pagamentos
 // @Produce json
 // @Param id path string true "ID do pedido"
-// @Success 200 {object} ConsultarStatusPagamentoResponse
+// @Success 200 {object} map[string]interface{}
 // @Failure 404 {string} string "Pedido não encontrado"
 // @Router /pedidos/{id}/pagamento/status [get]
 func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.Request) {
@@ -252,30 +239,28 @@ func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ConsultarStatusPagamentoResponse{
-		PedidoID:    pagamento.PedidoID,
-		PagamentoID: pagamento.ID,
-		Status:      string(pagamento.Status),
-		Valor:       pagamento.Valor,
-		Tipo:        string(pagamento.Tipo),
-		QRCode:      pagamento.QRCodeData,
-		ExternalID:  pagamento.ExternalID,
-		ExpiresAt:   pagamento.ExpiresAt,
-		ProcessedAt: pagamento.ProcessedAt,
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"pedido_id":    pagamento.PedidoID,
+		"pagamento_id": pagamento.ID,
+		"status":       string(pagamento.Status),
+		"valor":        pagamento.Valor,
+		"tipo":         string(pagamento.Tipo),
+		"qr_code":      pagamento.QRCode,
+		"external_id":  pagamento.ExternalID,
+		"expires_at":   pagamento.ExpiresAt,
+		"processed_at": pagamento.ProcessedAt,
 	})
 }
 
 func getStatusPrioridade(status domain.StatusPedido) int {
 	switch status {
 	case domain.StatusPronto:
-		return 1 
+		return 3
 	case domain.StatusEmPreparacao:
 		return 2
 	case domain.StatusRecebido:
-		return 3
-	case domain.StatusCancelado:
-		return 4
+		return 1
 	default:
-		return 5
+		return 0
 	}
 }
