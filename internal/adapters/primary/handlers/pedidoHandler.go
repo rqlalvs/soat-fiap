@@ -142,7 +142,7 @@ func (h *PedidoHandler) ListarPedidos(w http.ResponseWriter, r *http.Request) {
 		if filteredPedidos[i].Status == filteredPedidos[j].Status {
 			return filteredPedidos[i].CreatedAt.Before(filteredPedidos[j].CreatedAt)
 		}
-		return getStatusPriority(filteredPedidos[i].Status) > getStatusPriority(filteredPedidos[j].Status)
+		return getStatusPrioridade(filteredPedidos[i].Status) > getStatusPrioridade(filteredPedidos[j].Status)
 	})
 
 	response := h.presenter.PresentList(filteredPedidos)
@@ -252,7 +252,7 @@ func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.
 	})
 }
 
-func getStatusPriority(status domain.StatusPedido) int {
+func getStatusPrioridade(status domain.StatusPedido) int {
 	switch status {
 	case domain.StatusPronto:
 		return 3
