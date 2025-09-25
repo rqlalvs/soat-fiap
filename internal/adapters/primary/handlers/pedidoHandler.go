@@ -8,7 +8,6 @@ import (
 	"soat-fiap/internal/core/domain"
 	"soat-fiap/internal/core/ports"
 	"sort"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -87,7 +86,7 @@ func (h *PedidoHandler) CheckoutPedido(w http.ResponseWriter, r *http.Request) {
 		"status":       string(createdPedido.Status),
 		"valor":        createdPedido.ValorTotal,
 		"pagamento_id": pagamento.ID,
-		"qr_code":      pagamento.QRCode,
+		"qr_code":      pagamento.QRCodeData,
 		"external_id":  pagamento.ExternalID,
 		"expires_at":   pagamento.ExpiresAt,
 		"message":      "Pedido criado com sucesso. Realize o pagamento via PIX para prosseguir.",
@@ -245,7 +244,7 @@ func (h *PedidoHandler) ConsultarStatusPagamento(w http.ResponseWriter, r *http.
 		"status":       string(pagamento.Status),
 		"valor":        pagamento.Valor,
 		"tipo":         string(pagamento.Tipo),
-		"qr_code":      pagamento.QRCode,
+		"qr_code":      pagamento.QRCodeData,
 		"external_id":  pagamento.ExternalID,
 		"expires_at":   pagamento.ExpiresAt,
 		"processed_at": pagamento.ProcessedAt,
