@@ -1,4 +1,4 @@
-module soat-fiap-auth
+module github.com/fiap-soat-rx/soat-fiap-auth
 
 go 1.22.0
 

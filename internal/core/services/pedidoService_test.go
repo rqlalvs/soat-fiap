@@ -68,19 +68,24 @@ type MockPagamentoRepositoryPedido struct {
 }
 
 func (m *MockPagamentoRepositoryPedido) Criar(ctx context.Context, pagamento *domain.Pagamento) error {
-	return nil
+	args := m.Called(ctx, pagamento)
+	return args.Error(0)
 }
 func (m *MockPagamentoRepositoryPedido) BuscarPorID(ctx context.Context, id string) (*domain.Pagamento, error) {
-	return nil, nil
+	args := m.Called(ctx, id)
+	return args.Get(0).(*domain.Pagamento), args.Error(1)
 }
 func (m *MockPagamentoRepositoryPedido) BuscarPorPedidoID(ctx context.Context, pedidoID string) (*domain.Pagamento, error) {
-	return nil, nil
+	args := m.Called(ctx, pedidoID)
+	return args.Get(0).(*domain.Pagamento), args.Error(1)
 }
 func (m *MockPagamentoRepositoryPedido) BuscarPorExternalID(ctx context.Context, externalID string) (*domain.Pagamento, error) {
-	return nil, nil
+	args := m.Called(ctx, externalID)
+	return args.Get(0).(*domain.Pagamento), args.Error(1)
 }
 func (m *MockPagamentoRepositoryPedido) Atualizar(ctx context.Context, pagamento *domain.Pagamento) error {
-	return nil
+	args := m.Called(ctx, pagamento)
+	return args.Error(0)
 }
 func (m *MockPagamentoRepositoryPedido) ListarExpirados(ctx context.Context) ([]*domain.Pagamento, error) {
 	return nil, nil

@@ -33,8 +33,22 @@ type errorResponse struct {
 }
 
 func connect() (*sql.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
-	return sql.Open("mysql", dsn)
+	// Use Unix socket for Cloud SQL Auth Proxy
+	dsn := fmt.Sprintf("%s:%s@unix(/cloudsql/sylvan-willow-473218-f8:us-central1:soat-fiap-mysql)/%s?parseTime=true",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"))
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %v", err)
+	}
+
+	return db, nil
 }
 
 func validateCPF(raw string) (string, bool) {
