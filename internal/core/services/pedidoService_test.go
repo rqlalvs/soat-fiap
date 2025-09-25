@@ -63,10 +63,37 @@ func (m *MockProdutoRepositoryPedido) Deletar(ctx context.Context, id string) er
 	return nil
 }
 
+type MockPagamentoRepositoryPedido struct {
+	mock.Mock
+}
+
+func (m *MockPagamentoRepositoryPedido) Criar(ctx context.Context, pagamento *domain.Pagamento) error {
+	return nil
+}
+func (m *MockPagamentoRepositoryPedido) BuscarPorID(ctx context.Context, id string) (*domain.Pagamento, error) {
+	return nil, nil
+}
+func (m *MockPagamentoRepositoryPedido) BuscarPorPedidoID(ctx context.Context, pedidoID string) (*domain.Pagamento, error) {
+	return nil, nil
+}
+func (m *MockPagamentoRepositoryPedido) BuscarPorExternalID(ctx context.Context, externalID string) (*domain.Pagamento, error) {
+	return nil, nil
+}
+func (m *MockPagamentoRepositoryPedido) Atualizar(ctx context.Context, pagamento *domain.Pagamento) error {
+	return nil
+}
+func (m *MockPagamentoRepositoryPedido) ListarExpirados(ctx context.Context) ([]*domain.Pagamento, error) {
+	return nil, nil
+}
+func (m *MockPagamentoRepositoryPedido) ListarPorStatus(ctx context.Context, status domain.StatusPagamento) ([]*domain.Pagamento, error) {
+	return nil, nil
+}
+
 func TestCriarPedido_Sucesso(t *testing.T) {
 	pedidoRepo := new(MockPedidoRepository)
 	produtoRepo := new(MockProdutoRepositoryPedido)
-	service := NovoPedidoService(pedidoRepo, produtoRepo)
+	pagamentoRepo := new(MockPagamentoRepositoryPedido)
+	service := NovoPedidoService(pedidoRepo, produtoRepo, pagamentoRepo)
 	ctx := context.Background()
 
 	item := domain.ItemPedido{ProdutoID: "1", Quantidade: 2}
@@ -84,7 +111,8 @@ func TestCriarPedido_Sucesso(t *testing.T) {
 func TestCriarPedido_ProdutoNaoEncontrado(t *testing.T) {
 	pedidoRepo := new(MockPedidoRepository)
 	produtoRepo := new(MockProdutoRepositoryPedido)
-	service := NovoPedidoService(pedidoRepo, produtoRepo)
+	pagamentoRepo := new(MockPagamentoRepositoryPedido)
+	service := NovoPedidoService(pedidoRepo, produtoRepo, pagamentoRepo)
 	ctx := context.Background()
 
 	produtoRepo.On("BuscarPorID", ctx, "1").Return((*domain.Produto)(nil), nil)
@@ -97,7 +125,8 @@ func TestCriarPedido_ProdutoNaoEncontrado(t *testing.T) {
 func TestCriarPedido_ProdutoIndisponivel(t *testing.T) {
 	pedidoRepo := new(MockPedidoRepository)
 	produtoRepo := new(MockProdutoRepositoryPedido)
-	service := NovoPedidoService(pedidoRepo, produtoRepo)
+	pagamentoRepo := new(MockPagamentoRepositoryPedido)
+	service := NovoPedidoService(pedidoRepo, produtoRepo, pagamentoRepo)
 	ctx := context.Background()
 
 	produtoRepo.On("BuscarPorID", ctx, "1").Return(&domain.Produto{ID: "1", Nome: "Coca-Cola", Preco: 5.0, Disponivel: false}, nil)
@@ -110,7 +139,8 @@ func TestCriarPedido_ProdutoIndisponivel(t *testing.T) {
 func TestBuscarPedidoPorID_Sucesso(t *testing.T) {
 	pedidoRepo := new(MockPedidoRepository)
 	produtoRepo := new(MockProdutoRepositoryPedido)
-	service := NovoPedidoService(pedidoRepo, produtoRepo)
+	pagamentoRepo := new(MockPagamentoRepositoryPedido)
+	service := NovoPedidoService(pedidoRepo, produtoRepo, pagamentoRepo)
 	ctx := context.Background()
 
 	pedidoRepo.On("BuscarPorID", ctx, "1").Return(&domain.Pedido{ID: "1"}, nil)
@@ -124,7 +154,8 @@ func TestBuscarPedidoPorID_Sucesso(t *testing.T) {
 func TestAtualizarStatusPedido_StatusInvalido(t *testing.T) {
 	pedidoRepo := new(MockPedidoRepository)
 	produtoRepo := new(MockProdutoRepositoryPedido)
-	service := NovoPedidoService(pedidoRepo, produtoRepo)
+	pagamentoRepo := new(MockPagamentoRepositoryPedido)
+	service := NovoPedidoService(pedidoRepo, produtoRepo, pagamentoRepo)
 	ctx := context.Background()
 
 	err := service.AtualizarStatusPedido(ctx, "1", "INVALIDO")
@@ -134,7 +165,8 @@ func TestAtualizarStatusPedido_StatusInvalido(t *testing.T) {
 func TestAtualizarStatusPedido_PedidoNaoEncontrado(t *testing.T) {
 	pedidoRepo := new(MockPedidoRepository)
 	produtoRepo := new(MockProdutoRepositoryPedido)
-	service := NovoPedidoService(pedidoRepo, produtoRepo)
+	pagamentoRepo := new(MockPagamentoRepositoryPedido)
+	service := NovoPedidoService(pedidoRepo, produtoRepo, pagamentoRepo)
 	ctx := context.Background()
 
 	pedidoRepo.On("BuscarPorID", ctx, "1").Return((*domain.Pedido)(nil), nil)
