@@ -121,7 +121,43 @@ go mod download
 
 # Executar a aplicação
 go run cmd/api/main.go
+```
 
+Imagem pública da aplicação: `docker.io/rachlalv/soat-fiap:latest`
+
+1) Aplicar os manifests
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/configmap.yaml -f k8s/secret.yaml
+kubectl apply -f k8s/mysql-pvc.yaml
+kubectl apply -f k8s/mysql-deployment.yaml
+kubectl apply -f k8s/app-deployment.yaml
+kubectl apply -f k8s/hpa.yaml
+```
+- Esperado: 1 pod `mysql` e 2 pods `soat-fiap-app` (HPA até 4).
+
+2) Verificar pods
+```bash
+kubectl -n soat-fiap get pods -o wide
+```
+
+3) Acessar localmente (port-forward)
+```bash
+
+kubectl -n soat-fiap port-forward svc/soat-fiap-app 8081:80
+```
+- Health: http://localhost:8081/api/v1/health
+- Swagger: http://localhost:8081/swagger/index.html
+
+
+## 📦 Publicar nova imagem (Docker Hub)
+```bash
+docker build -t soat-fiap:latest -f dockerfile .
+docker tag soat-fiap:latest docker.io/SEU_USUARIO/soat-fiap:latest
+docker push docker.io/SEU_USUARIO/soat-fiap:latest
+# Atualize k8s/app-deployment.yaml com sua imagem e:
+kubectl -n soat-fiap rollout restart deployment/soat-fiap-app
+```
 
 ## 📡 Endpoints da API
 
@@ -209,12 +245,6 @@ POST /api/v1/mock/pagamento/{external_id}/simular?status=APROVADO
 - `PUT /api/v1/produtos/{id}` - Atualizar produto
 - `DELETE /api/v1/produtos/{id}` - Deletar produto
 
-### Categorias de Produtos
-- `LANCHE`
-- `ACOMPANHAMENTO`
-- `BEBIDA`
-- `SOBREMESA`
-
 ### Pedidos
 - `POST /api/v1/checkout` - Realizar checkout do pedido
 - `POST /api/v1/pedidos` - Criar pedido
@@ -227,7 +257,6 @@ POST /api/v1/mock/pagamento/{external_id}/simular?status=APROVADO
 
 A documentação Swagger está disponível em:
 ```
-http://localhost:8080/swagger/index.html
-```
+http://localhost:8081/swagger/index.html
 
 Feito por Raquel Alves e Alexandre Pereira :D
