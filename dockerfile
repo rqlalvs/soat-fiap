@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 WORKDIR /app
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN apk add --no-cache git ca-certificates
