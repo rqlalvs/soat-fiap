@@ -1,0 +1,4 @@
+﻿CREATE DATABASE IF NOT EXISTS soat_fiap;
+CREATE USER IF NOT EXISTS 'appuser'@'%' IDENTIFIED BY 'apppassword';
+GRANT ALL PRIVILEGES ON soat_fiap.* TO 'appuser'@'%';
+FLUSH PRIVILEGES;
