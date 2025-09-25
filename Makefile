@@ -5,9 +5,18 @@ all: build test
 
 build:
 	@echo "Building..."
-	
-	
 	@go build -o main.exe cmd/api/main.go
+
+# Build Docker image
+docker-build:
+	@echo "Building Docker image..."
+	docker build -t soat-fiap:latest .
+
+# Build and push to local registry (for development)
+docker-build-local:
+	@echo "Building and pushing to local registry..."
+	docker build -t localhost:5000/soat-fiap:latest .
+	docker push localhost:5000/soat-fiap:latest
 
 # Run the application
 run:
@@ -35,4 +44,4 @@ watch:
 		Write-Output 'Watching...'; \
 	}"
 
-.PHONY: all build run test clean watch
+.PHONY: all build docker-build docker-build-local run test clean watch
