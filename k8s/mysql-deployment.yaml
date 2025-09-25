@@ -39,6 +39,8 @@ spec:
             secretKeyRef:
               name: soat-fiap-secret
               key: DB_PASSWORD
+        - name: MYSQL_ROOT_HOST
+          value: "localhost"
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
