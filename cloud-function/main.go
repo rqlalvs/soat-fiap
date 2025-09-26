@@ -33,10 +33,11 @@ type errorResponse struct {
 }
 
 func connect() (*sql.DB, error) {
-	// Use Unix socket for Cloud SQL Auth Proxy
-	dsn := fmt.Sprintf("%s:%s@unix(/cloudsql/sylvan-willow-473218-f8:us-central1:soat-fiap-mysql)/%s?parseTime=true",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
 		os.Getenv("DB_NAME"))
 
 	db, err := sql.Open("mysql", dsn)
