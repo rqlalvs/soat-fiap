@@ -12,8 +12,13 @@ API REST completa para gerenciamento de pedidos de uma lanchonete com sistema de
 ## 🚀 Tecnologias
 
 - Go 1.23
-- MySQL 8.0
+- MySQL 8.0 (Cloud SQL)
 - Docker
+- Kubernetes (GKE)
+- Nginx Ingress Controller
+- Google Cloud Platform
+- Cloud Run
+- Cloud Functions
 - Gorilla Mux (Routing)
 - Swagger/OpenAPI (Documentação)
 - UUID (Identificadores únicos)
@@ -123,7 +128,23 @@ go mod download
 go run cmd/api/main.go
 ```
 
-Imagem pública da aplicação: `docker.io/rachlalv/soat-fiap:latest`
+## 🌐 Deploy em Produção (Google Cloud)
+
+### **URLs de Acesso:**
+- **API Gateway (Nginx Ingress)**: `http://34.61.203.78`
+- **Cloud Run**: `https://soat-fiap-app-1083899432359.us-central1.run.app`
+- **LoadBalancer**: `http://35.239.47.7`
+
+### **Arquitetura:**
+```
+Cliente → Nginx Ingress → GKE Pods (2-4 replicas)
+                    ↓
+              Cloud SQL (MySQL)
+                    ↓
+              Cloud Functions (Auth)
+```
+
+### **Deploy no GKE:**
 
 1) Aplicar os manifests
 ```bash
@@ -136,25 +157,59 @@ kubectl apply -f k8s/hpa.yaml
 ```
 - Esperado: 1 pod `mysql` e 2 pods `soat-fiap-app` (HPA até 4).
 
-2) Verificar pods
+2) Instalar Nginx Ingress Controller
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
+```
+
+3) Aplicar Ingress
+```bash
+kubectl apply -f k8s/nginx-ingress.yaml
+```
+
+4) Verificar pods
 ```bash
 kubectl -n soat-fiap get pods -o wide
+kubectl -n soat-fiap get ingress
 ```
 
-3) Acessar localmente (port-forward)
-```bash
+5) Acessar via API Gateway
+- Health: http://34.61.203.78/api/v1/health
+- Swagger: http://34.61.203.78/swagger/index.html
+- Clientes: http://34.61.203.78/api/v1/clientes
+- Produtos: http://34.61.203.78/api/v1/produtos
+- Pedidos: http://34.61.203.78/api/v1/pedidos
 
-kubectl -n soat-fiap port-forward svc/soat-fiap-app 8081:80
-```
-- Health: http://localhost:8081/api/v1/health
-- Swagger: http://localhost:8081/swagger/index.html
 
+## 📦 Publicar nova imagem
 
-## 📦 Publicar nova imagem (Docker Hub)
+### **Docker Hub:**
 ```bash
 docker build -t soat-fiap:latest -f dockerfile .
 docker tag soat-fiap:latest docker.io/SEU_USUARIO/soat-fiap:latest
 docker push docker.io/SEU_USUARIO/soat-fiap:latest
+```
+
+### **Google Artifact Registry:**
+```bash
+docker build -t soat-fiap:latest -f dockerfile .
+docker tag soat-fiap:latest us-central1-docker.pkg.dev/sylvan-willow-473218-f8/soat-fiap/soat-fiap:latest
+docker push us-central1-docker.pkg.dev/sylvan-willow-473218-f8/soat-fiap/soat-fiap:latest
+```
+
+### **Deploy no Cloud Run:**
+```bash
+gcloud run deploy soat-fiap-app \
+  --image us-central1-docker.pkg.dev/sylvan-willow-473218-f8/soat-fiap/soat-fiap:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --port 8080 \
+  --set-env-vars="DB_HOST=35.238.252.201,DB_PORT=3306,DB_USER=testuser,DB_PASSWORD=test123,DB_NAME=soat"
+```
+
+### **Atualizar GKE:**
+```bash
 # Atualize k8s/app-deployment.yaml com sua imagem e:
 kubectl -n soat-fiap rollout restart deployment/soat-fiap-app
 ```
@@ -255,8 +310,39 @@ POST /api/v1/mock/pagamento/{external_id}/simular?status=APROVADO
 ### Health Check
 - `GET /api/v1/health` - Verificar status da API
 
+## 🔐 Autenticação (Cloud Function)
+
+### **Cloud Function para Autenticação:**
+- **URL**: `https://us-central1-sylvan-willow-473218-f8.cloudfunctions.net/authByCPF`
+- **Método**: POST
+- **Body**: `{"cpf": "12345678901"}`
+- **Resposta**: JWT token + dados do cliente
+
+### **Cloud SQL:**
+- **Instância**: `soat-fiap-mysql`
+- **IP**: `35.238.252.201`
+- **Banco**: `soat`
+- **Usuário**: `testuser`
+
+## 📚 Documentação
+
 A documentação Swagger está disponível em:
+- **Local**: http://localhost:8081/swagger/index.html
+- **Produção**: http://34.61.203.78/swagger/index.html
+
+## 🏗️ Arquitetura Completa
+
 ```
-http://localhost:8081/swagger/index.html
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Cliente       │───▶│  Nginx Ingress   │───▶│  GKE Pods       │
+│   (Frontend)    │    │  (API Gateway)   │    │  (2-4 replicas) │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                       ┌──────────────────┐    ┌─────────────────┐
+                       │  Cloud Function  │    │   Cloud SQL     │
+                       │  (Auth by CPF)   │    │   (MySQL)       │
+                       └──────────────────┘    └─────────────────┘
+```
 
 Feito por Raquel Alves e Alexandre Pereira :D

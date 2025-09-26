@@ -1,0 +1,95 @@
+swagger: "2.0"
+info:
+  title: SOAT FIAP API Gateway
+  description: API Gateway para o projeto SOAT FIAP
+  version: 1.0.0
+host: soat-fiap-gateway-uc.a.run.app
+schemes:
+  - https
+paths:
+  /api/v1/health:
+    get:
+      summary: Health Check
+      operationId: healthCheck
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+  /api/v1/auth:
+    post:
+      summary: Autenticação por CPF
+      operationId: authByCPF
+      x-google-backend:
+        address: https://us-central1-sylvan-willow-473218-f8.cloudfunctions.net/authByCPF
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              cpf:
+                type: string
+      responses:
+        '200':
+          description: Token JWT gerado
+          schema:
+            type: object
+        '404':
+          description: Cliente não encontrado
+        '400':
+          description: CPF inválido
+  /api/v1/clientes:
+    get:
+      summary: Listar clientes
+      operationId: listClientes
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '200':
+          description: Lista de clientes
+    post:
+      summary: Criar cliente
+      operationId: createCliente
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '201':
+          description: Cliente criado
+  /api/v1/produtos:
+    get:
+      summary: Listar produtos
+      operationId: listProdutos
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '200':
+          description: Lista de produtos
+    post:
+      summary: Criar produto
+      operationId: createProduto
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '201':
+          description: Produto criado
+  /api/v1/pedidos:
+    get:
+      summary: Listar pedidos
+      operationId: listPedidos
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '200':
+          description: Lista de pedidos
+    post:
+      summary: Criar pedido
+      operationId: createPedido
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '201':
+          description: Pedido criado

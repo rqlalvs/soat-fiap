@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: docker.io/rachlalv/soat-fiap:latest
+          image: us-central1-docker.pkg.dev/sylvan-willow-473218-f8/soat-fiap/soat-fiap:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
