@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
 )
 
