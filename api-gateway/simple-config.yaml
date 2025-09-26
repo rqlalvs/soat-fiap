@@ -1,0 +1,18 @@
+swagger: "2.0"
+info:
+  title: SOAT FIAP API Gateway
+  description: API Gateway para o projeto SOAT FIAP
+  version: 1.0.0
+host: soat-fiap-gateway-uc.a.run.app
+schemes:
+  - https
+paths:
+  /api/v1/health:
+    get:
+      summary: Health Check
+      operationId: healthCheck
+      x-google-backend:
+        address: https://soat-fiap-app-1083899432359.us-central1.run.app
+      responses:
+        '200':
+          description: OK
