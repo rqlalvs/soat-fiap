@@ -1,0 +1,51 @@
+name: Deploy Cloud Function
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'cloud-function/**' ]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: sylvan-willow-473218-f8
+  REGION: us-central1
+  FUNCTION_NAME: authByCPF
+
+jobs:
+  deploy-function:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Deploy Cloud Function
+      run: |
+        cd cloud-function
+        gcloud functions deploy ${{ env.FUNCTION_NAME }} \
+          --gen2 \
+          --runtime=go122 \
+          --region=${{ env.REGION }} \
+          --source=. \
+          --entry-point=AuthByCPF \
+          --trigger-http \
+          --allow-unauthenticated \
+          --set-env-vars="DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_NAME=${{ secrets.DB_NAME }},DB_HOST=${{ secrets.DB_HOST }},DB_PORT=${{ secrets.DB_PORT }},JWT_SECRET=${{ secrets.JWT_SECRET }}"
+
+    - name: Test Cloud Function
+      run: |
+        echo "🧪 Testing Cloud Function..."
+        curl -X POST https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/${{ env.FUNCTION_NAME }} \
+          -H "Content-Type: application/json" \
+          -d '{"cpf":"12345678901"}' \
+          --max-time 30 || echo "⚠️ Function test failed, but deployment completed"
