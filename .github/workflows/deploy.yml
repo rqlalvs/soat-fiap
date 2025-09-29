@@ -31,9 +31,7 @@ jobs:
         project_id: ${{ env.PROJECT_ID }}
 
     - name: Configure Docker for GCP Artifact Registry
-      run: |
-        gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
-        gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.REGISTRY }}
+      run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
 
     - name: Build Docker image
       run: |
