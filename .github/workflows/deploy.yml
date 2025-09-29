@@ -13,7 +13,7 @@ env:
   REPOSITORY: soat-fiap
   IMAGE_NAME: soat-fiap
   GKE_CLUSTER: soat-fiap
-  GKE_ZONE: us-central1-c
+  GKE_ZONE: us-central1
   CLOUD_FUNCTION_NAME: authByCPF
 
 jobs:
