@@ -357,7 +357,7 @@ A documentação Swagger está disponível em:
 
 - **GitHub Actions**: https://github.com/rqlalvs/soat-fiap/actions
 - **Logs**: Cada step tem logs detalhados
-- **Rollback**: Automático se deploy falhar
+- **Rollback**: Automático se deploy falhar.
 
 ## 🏗️ Arquitetura Completa
 
