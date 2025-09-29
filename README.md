@@ -9,6 +9,30 @@ API REST completa para gerenciamento de pedidos de uma lanchonete com sistema de
 - Go
 
 
+## 🏗️ Arquitetura
+
+### **Repositórios do Projeto:**
+- **`soat-fiap`** - Aplicação principal (este repositório)
+- **`soat-fiap-auth-function`** - Cloud Function para autenticação
+- **`soat-fiap-infra-k8s`** - Infraestrutura Kubernetes
+- **`soat-fiap-infra-db`** - Infraestrutura Database
+
+### **Componentes:**
+- **☸️ Kubernetes (GKE)** - Orquestração de containers
+- **🗄️ Cloud SQL** - Banco de dados gerenciado
+- **☁️ Cloud Functions** - Autenticação serverless
+- **🌐 Nginx Ingress** - API Gateway
+- **🚀 CI/CD** - GitHub Actions
+
+## 🔄 CI/CD Pipeline
+
+### **Fluxo de Deploy:**
+1. **Push para `main`** → Trigger automático
+2. **Build da imagem** → Docker + Artifact Registry
+3. **Deploy K8s** → `soat-fiap-infra-k8s` repository
+4. **Deploy Database** → `soat-fiap-infra-db` repository
+5. **Deploy Cloud Function** → `soat-fiap-auth-function` repository
+
 ## 🚀 Tecnologias
 
 - Go 1.23
