@@ -12,7 +12,7 @@ env:
   REGISTRY: us-central1-docker.pkg.dev
   REPOSITORY: soat-fiap
   IMAGE_NAME: soat-fiap
-  GKE_CLUSTER: soat-fiap-cluster
+  GKE_CLUSTER: soat-fiap
   GKE_ZONE: us-central1-c
   CLOUD_FUNCTION_NAME: authByCPF
 
