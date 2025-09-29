@@ -330,6 +330,35 @@ A documentação Swagger está disponível em:
 - **Local**: http://localhost:8081/swagger/index.html
 - **Produção**: http://34.61.203.78/swagger/index.html
 
+## 🚀 CI/CD com GitHub Actions
+
+### **Workflows Automatizados:**
+
+1. **Deploy Principal** (`.github/workflows/deploy.yml`)
+   - **Trigger**: Push para `main` branch
+   - **Ações**: Build → Push → Deploy GKE → Deploy Cloud Function
+   - **Duração**: ~5-10 minutos
+
+2. **Deploy Cloud Function** (`.github/workflows/cloud-function.yml`)
+   - **Trigger**: Mudanças em `cloud-function/` ou manual
+   - **Ações**: Deploy apenas da Cloud Function
+   - **Duração**: ~2-3 minutos
+
+### **Como Funciona:**
+
+1. **Push para main** → GitHub Actions inicia
+2. **Build Docker** → Builda imagem Docker
+3. **Push para Registry** → Envia para Artifact Registry
+4. **Deploy GKE** → Atualiza pods no Kubernetes
+5. **Deploy Cloud Function** → Atualiza função serverless
+6. **Verificação** → Testa se tudo está funcionando
+
+### **Monitoramento:**
+
+- **GitHub Actions**: https://github.com/rqlalvs/soat-fiap/actions
+- **Logs**: Cada step tem logs detalhados
+- **Rollback**: Automático se deploy falhar
+
 ## 🏗️ Arquitetura Completa
 
 ```

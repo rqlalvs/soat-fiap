@@ -1,0 +1,74 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PROJECT_ID: sylvan-willow-473218-f8
+  REGION: us-central1
+  REGISTRY: us-central1-docker.pkg.dev
+  REPOSITORY: soat-fiap
+  IMAGE_NAME: soat-fiap
+  GKE_CLUSTER: soat-fiap-cluster
+  GKE_ZONE: us-central1-c
+  CLOUD_FUNCTION_NAME: authByCPF
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Google Cloud CLI
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Configure Docker for GCP Artifact Registry
+      run: gcloud auth configure-docker ${{ env.REGISTRY }}
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker tag ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Push Docker image
+      run: |
+        docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Get GKE credentials
+      run: gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} --zone ${{ env.GKE_ZONE }} --project ${{ env.PROJECT_ID }}
+
+    - name: Deploy to GKE
+      run: |
+        # Update deployment with new image
+        kubectl set image deployment/soat-fiap-app app=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n soat-fiap
+        
+        # Wait for rollout to complete
+        kubectl rollout status deployment/soat-fiap-app -n soat-fiap --timeout=300s
+
+    - name: Deploy Cloud Function
+      run: |
+        cd cloud-function
+        gcloud functions deploy ${{ env.CLOUD_FUNCTION_NAME }} \
+          --gen2 \
+          --runtime=go122 \
+          --region=${{ env.REGION }} \
+          --source=. \
+          --entry-point=AuthByCPF \
+          --trigger-http \
+          --allow-unauthenticated \
+          --set-env-vars="DB_USER=${{ secrets.DB_USER }},DB_PASSWORD=${{ secrets.DB_PASSWORD }},DB_NAME=${{ secrets.DB_NAME }},DB_HOST=${{ secrets.DB_HOST }},DB_PORT=${{ secrets.DB_PORT }},JWT_SECRET=${{ secrets.JWT_SECRET }}"
+
+    - name: Verify deployment
+      run: |
+        echo "🚀 Deployment completed successfully!"
+        echo "📱 Application URL: http://$(kubectl get ingress soat-fiap-ingress -n soat-fiap -o jsonpath='{.status.loadBalancer.ingress[0].ip}')"
+        echo "🔐 Cloud Function URL: https://${{ env.REGION }}-${{ env.PROJECT_ID }}.cloudfunctions.net/${{ env.CLOUD_FUNCTION_NAME }}"
