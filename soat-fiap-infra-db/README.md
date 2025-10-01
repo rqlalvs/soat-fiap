@@ -255,4 +255,12 @@ terraform destroy
 gcloud sql instances list
 ```
 
+## 📚 Documentação
+
+### **Design de Banco de Dados**
+- [Modelagem de Dados](docs/database-design.md) - Padrões de normalização e DDD
+- [Estrutura das Tabelas](docs/database-design.md#estrutura-das-tabelas) - Schema completo
+- [Índices e Performance](docs/database-design.md#índices-estratégicos) - Otimizações
+- [Segurança e Compliance](docs/database-design.md#segurança-e-compliance) - LGPD e auditoria
+
 

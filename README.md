@@ -164,9 +164,31 @@ soat-fiap-infra-db/      # Database infrastructure
 - **Service accounts** configurados
 - **Network policies**
 
+## 🗄️ Diagrama ER do Banco de Dados
+
+![Diagrama ER](docs/diagrama%20bd.png)
+
+*Diagrama de relacionamento entre as entidades do sistema SOAT FIAP - Seguindo padrões de normalização (3NF) e Domain-Driven Design*
+
+### **Estrutura do Banco**
+- **6 tabelas principais** com relacionamentos bem definidos
+- **Normalização 3NF** para evitar redundância
+- **Integridade referencial** com foreign keys
+- **Auditoria completa** com timestamps
+- **Performance otimizada** com índices estratégicos
+
+### **Entidades Principais**
+- **CLIENTES**: Dados dos clientes com CPF único
+- **CATEGORIAS**: Categorias de produtos (Lanche, Bebida, etc.)
+- **PRODUTOS**: Produtos disponíveis para pedido
+- **PEDIDOS**: Pedidos realizados pelos clientes
+- **PEDIDO_ITENS**: Itens individuais de cada pedido
+- **PAGAMENTOS**: Pagamentos associados aos pedidos
+
 ## 📚 Documentação Adicional
 
 - [Arquitetura Detalhada](docs/architecture.md)
+- [Design de Banco de Dados](docs/database-design.md)
 - [API Documentation](docs/api.md)
 - [Deployment Guide](docs/deployment.md)
 - [Troubleshooting](docs/troubleshooting.md)
