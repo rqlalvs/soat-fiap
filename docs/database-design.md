@@ -353,25 +353,6 @@ DELIMITER ;
 
 ---
 
-## 🔄 **Estratégias de Backup e Recovery**
-
-### **Backup Automático**
-- **Frequência**: Diário às 02:00 UTC
-- **Retenção**: 7 dias
-- **Point-in-time Recovery**: Habilitado
-- **Cross-region**: Backup em região diferente
-
-### **Recovery Testing**
-```sql
--- Script de teste de recovery
--- 1. Criar backup de teste
--- 2. Simular falha
--- 3. Restaurar backup
--- 4. Validar integridade
-```
-
----
-
 ## 📊 **Monitoramento e Métricas**
 
 ### **Queries de Monitoramento**
