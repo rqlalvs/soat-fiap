@@ -190,8 +190,3 @@ soat-fiap-infra-db/      # Database infrastructure
 - [Arquitetura Detalhada](docs/architecture.md)
 - [Design de Banco de Dados](docs/database-design.md)
 
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
