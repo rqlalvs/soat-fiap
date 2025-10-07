@@ -189,9 +189,6 @@ soat-fiap-infra-db/      # Database infrastructure
 
 - [Arquitetura Detalhada](docs/architecture.md)
 - [Design de Banco de Dados](docs/database-design.md)
-- [API Documentation](docs/api.md)
-- [Deployment Guide](docs/deployment.md)
-- [Troubleshooting](docs/troubleshooting.md)
 
 
 ## 📄 Licença
