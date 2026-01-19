@@ -5,27 +5,60 @@ import (
 	"errors"
 	"fmt"
 	"soat-fiap/internal/core/domain"
-	"soat-fiap/internal/core/ports"
+	"soat-fiap/pkg/clients"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type PagamentoService struct {
-	pagamentoRepository ports.PagamentoRepository
-	pedidoService       ports.PedidoService
+	pagamentoClient *clients.PagamentoClient
+	pedidoClient    *clients.PedidoClient
 }
 
-func NovoPagamentoService(pagamentoRepository ports.PagamentoRepository, pedidoService ports.PedidoService) *PagamentoService {
+func NovoPagamentoService(pagamentoClient *clients.PagamentoClient, pedidoClient *clients.PedidoClient) *PagamentoService {
 	return &PagamentoService{
-		pagamentoRepository: pagamentoRepository,
-		pedidoService:       pedidoService,
+		pagamentoClient: pagamentoClient,
+		pedidoClient:    pedidoClient,
+	}
+}
+
+func pagamentoFromClient(p *clients.Pagamento) *domain.Pagamento {
+	if p == nil {
+		return nil
+	}
+
+	var expiresAt *time.Time
+	if p.ExpiresAt != nil {
+		t, err := time.Parse(time.RFC3339, *p.ExpiresAt)
+		if err == nil {
+			expiresAt = &t
+		}
+	}
+
+	var processedAt *time.Time
+	if p.ProcessedAt != nil {
+		t, err := time.Parse(time.RFC3339, *p.ProcessedAt)
+		if err == nil {
+			processedAt = &t
+		}
+	}
+
+	return &domain.Pagamento{
+		ID:          p.ID,
+		PedidoID:    p.PedidoID,
+		Valor:       p.Valor,
+		Status:      domain.StatusPagamento(p.Status),
+		Tipo:        domain.TipoPagamento(p.Tipo),
+		QRCodeData:  p.QRCodeData,
+		ExternalID:  p.ExternalID,
+		ExpiresAt:   expiresAt,
+		ProcessedAt: processedAt,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 }
 
 func (s *PagamentoService) CriarPagamento(ctx context.Context, pedidoID string, valor float64, tipo domain.TipoPagamento) (*domain.Pagamento, error) {
-
-	pedido, err := s.pedidoService.BuscarPedidoPorID(ctx, pedidoID)
+	pedido, err := s.pedidoClient.ValidarPedido(ctx, pedidoID)
 	if err != nil {
 		return nil, err
 	}
@@ -33,131 +66,56 @@ func (s *PagamentoService) CriarPagamento(ctx context.Context, pedidoID string, 
 		return nil, errors.New("pedido não encontrado")
 	}
 
-	pagamentoExistente, err := s.pagamentoRepository.BuscarPorPedidoID(ctx, pedidoID)
-	if err == nil && pagamentoExistente != nil {
-		return nil, errors.New("já existe um pagamento para este pedido")
-	}
-
-	id := uuid.New().String()
-	pagamento, err := domain.NovoPagamento(id, pedidoID, valor, tipo)
+	pagamentoClient, err := s.pagamentoClient.CriarPagamento(ctx, pedidoID, valor, string(tipo))
 	if err != nil {
 		return nil, err
 	}
 
-	if tipo == domain.TipoPagamentoPix {
-		qrCode, err := s.GerarQRCodePIX(ctx, pagamento.ID)
-		if err != nil {
-			return nil, fmt.Errorf("erro ao gerar QR Code PIX: %w", err)
-		}
-		pagamento.QRCodeData = qrCode
-		
-		expiresAt := time.Now().Add(30 * time.Minute)
-		pagamento.ExpiresAt = &expiresAt
-	}
-
-	pagamento.ExternalID = fmt.Sprintf("MP_%s", uuid.New().String()[:8])
-
-	err = s.pagamentoRepository.Criar(ctx, pagamento)
-	if err != nil {
-		return nil, err
-	}
-
-	return pagamento, nil
+	return pagamentoFromClient(pagamentoClient), nil
 }
 
 func (s *PagamentoService) BuscarPagamentoPorID(ctx context.Context, id string) (*domain.Pagamento, error) {
-	return s.pagamentoRepository.BuscarPorID(ctx, id)
-}
-
-func (s *PagamentoService) BuscarPagamentoPorPedidoID(ctx context.Context, pedidoID string) (*domain.Pagamento, error) {
-	return s.pagamentoRepository.BuscarPorPedidoID(ctx, pedidoID)
-}
-
-func (s *PagamentoService) ProcessarWebhookPagamento(ctx context.Context, externalID string, status domain.StatusPagamento) error {
-
-	pagamento, err := s.pagamentoRepository.BuscarPorExternalID(ctx, externalID)
-	if err != nil {
-		return err
-	}
-	if pagamento == nil {
-		return errors.New("pagamento não encontrado para o ID externo: " + externalID)
-	}
-
-	switch status {
-	case domain.StatusPagamentoAprovado:
-		err = pagamento.Aprovar()
-	case domain.StatusPagamentoRecusado:
-		err = pagamento.Recusar()
-	case domain.StatusPagamentoCancelado:
-		err = pagamento.Cancelar()
-	default:
-		return errors.New("status de pagamento inválido no webhook")
-	}
-
-	if err != nil {
-		return err
-	}
-
-	err = s.pagamentoRepository.Atualizar(ctx, pagamento)
-	if err != nil {
-		return err
-	}
-
-	if status == domain.StatusPagamentoAprovado {
-		err = s.pedidoService.AtualizarStatusPedido(ctx, pagamento.PedidoID, domain.StatusEmPreparacao)
-		if err != nil {
-			fmt.Printf("Erro ao atualizar status do pedido %s: %v\n", pagamento.PedidoID, err)
-		}
-	}
-
-	return nil
-}
-
-func (s *PagamentoService) GerarQRCodePIX(ctx context.Context, pagamentoID string) (string, error) {
-	qrCodeData := fmt.Sprintf("00020126580014br.gov.bcb.pix0136%s5204000053039865802BR5925LANCHONETE SOAT FIAP6009SAO PAULO62070503***6304", pagamentoID)
-	return qrCodeData, nil
-}
-
-func (s *PagamentoService) ConsultarStatusPagamento(ctx context.Context, pedidoID string) (*domain.Pagamento, error) {
-	pagamento, err := s.pagamentoRepository.BuscarPorPedidoID(ctx, pedidoID)
+	pagamentoClient, err := s.pagamentoClient.BuscarPorID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if pagamento == nil {
-		return nil, errors.New("pagamento não encontrado para o pedido")
+	return pagamentoFromClient(pagamentoClient), nil
+}
+
+func (s *PagamentoService) BuscarPagamentoPorPedidoID(ctx context.Context, pedidoID string) (*domain.Pagamento, error) {
+	pagamentoClient, err := s.pagamentoClient.BuscarPorPedidoID(ctx, pedidoID)
+	if err != nil {
+		return nil, err
+	}
+	return pagamentoFromClient(pagamentoClient), nil
+}
+
+func (s *PagamentoService) ProcessarWebhookPagamento(ctx context.Context, externalID string, status domain.StatusPagamento) error {
+	// O webhook deve ser processado diretamente pelo serviço de pagamentos
+	// Este método pode ser removido ou mantido como proxy se necessário
+	return fmt.Errorf("webhook deve ser processado diretamente pelo serviço de pagamentos")
+}
+
+func (s *PagamentoService) ConsultarStatusPagamento(ctx context.Context, pedidoID string) (*domain.Pagamento, error) {
+	pagamentoClient, err := s.pagamentoClient.ConsultarStatusPagamento(ctx, pedidoID)
+	if err != nil {
+		return nil, err
 	}
 
-	if pagamento.Tipo == domain.TipoPagamentoPix && pagamento.IsExpirado() && pagamento.Status == domain.StatusPagamentoPendente {
-		err = pagamento.Cancelar()
-		if err != nil {
-			return nil, err
-		}
-		err = s.pagamentoRepository.Atualizar(ctx, pagamento)
-		if err != nil {
-			return nil, err
-		}
+	pagamento := pagamentoFromClient(pagamentoClient)
+	if pagamento == nil {
+		return nil, errors.New("pagamento não encontrado para o pedido")
 	}
 
 	return pagamento, nil
 }
 
 func (s *PagamentoService) CancelarPagamento(ctx context.Context, pagamentoID string) error {
-	pagamento, err := s.pagamentoRepository.BuscarPorID(ctx, pagamentoID)
-	if err != nil {
-		return err
-	}
-	if pagamento == nil {
-		return errors.New("pagamento não encontrado")
-	}
-
-	err = pagamento.Cancelar()
-	if err != nil {
-		return err
-	}
-
-	return s.pagamentoRepository.Atualizar(ctx, pagamento)
+	return s.pagamentoClient.CancelarPagamento(ctx, pagamentoID)
 }
 
 func (s *PagamentoService) ListarPagamentosExpirados(ctx context.Context) ([]*domain.Pagamento, error) {
-	return s.pagamentoRepository.ListarExpirados(ctx)
+	// Esta funcionalidade deve ser implementada no serviço de pagamentos
+	// Por enquanto retornamos erro ou lista vazia
+	return nil, fmt.Errorf("funcionalidade não disponível via API")
 }

@@ -2,74 +2,93 @@ package services
 
 import (
 	"context"
-	"errors"
 	"soat-fiap/internal/core/domain"
-	"soat-fiap/internal/core/ports"
+	"soat-fiap/pkg/clients"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type ProdutoService struct {
-	repository ports.ProdutoRepository
+	produtoClient *clients.ProdutoClient
 }
 
-func NovoProdutoService(repository ports.ProdutoRepository) *ProdutoService {
+func NovoProdutoService(produtoClient *clients.ProdutoClient) *ProdutoService {
 	return &ProdutoService{
-		repository: repository,
+		produtoClient: produtoClient,
+	}
+}
+
+func produtoFromClient(p *clients.Produto) *domain.Produto {
+	if p == nil {
+		return nil
+	}
+	return &domain.Produto{
+		ID:         p.ID,
+		Nome:       p.Nome,
+		Descricao:  p.Descricao,
+		Preco:      p.Preco,
+		Categoria:   domain.Categoria(p.Categoria),
+		Disponivel: p.Disponivel,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 }
 
 func (s *ProdutoService) CriarProduto(ctx context.Context, nome, descricao string, preco float64, categoria domain.Categoria) (*domain.Produto, error) {
-	id := uuid.New().String()
-
-	produto, err := domain.NovoProduto(id, nome, descricao, preco, categoria)
+	produtoClient, err := s.produtoClient.CriarProduto(ctx, nome, descricao, preco, string(categoria), true)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.repository.Criar(ctx, produto)
-	if err != nil {
-		return nil, err
-	}
-
-	return produto, nil
+	return produtoFromClient(produtoClient), nil
 }
 
 func (s *ProdutoService) BuscarProdutoPorID(ctx context.Context, id string) (*domain.Produto, error) {
-	return s.repository.BuscarPorID(ctx, id)
+	produtoClient, err := s.produtoClient.BuscarPorID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return produtoFromClient(produtoClient), nil
 }
 
 func (s *ProdutoService) ListarProdutos(ctx context.Context) ([]*domain.Produto, error) {
-	return s.repository.Listar(ctx)
+	produtosClient, err := s.produtoClient.ListarProdutos(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	produtos := make([]*domain.Produto, 0, len(produtosClient))
+	for _, p := range produtosClient {
+		produtos = append(produtos, produtoFromClient(p))
+	}
+
+	return produtos, nil
 }
 
 func (s *ProdutoService) ListarProdutosPorCategoria(ctx context.Context, categoria domain.Categoria) ([]*domain.Produto, error) {
-	if !domain.IsCategoriaValida(categoria) {
-		return nil, errors.New("categoria inválida")
+	produtos, err := s.ListarProdutos(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return s.repository.ListarPorCategoria(ctx, categoria)
+
+	var produtosFiltrados []*domain.Produto
+	for _, p := range produtos {
+		if p.Categoria == categoria {
+			produtosFiltrados = append(produtosFiltrados, p)
+		}
+	}
+
+	return produtosFiltrados, nil
 }
 
 func (s *ProdutoService) AtualizarProduto(ctx context.Context, produto *domain.Produto) error {
-	produtoExistente, err := s.repository.BuscarPorID(ctx, produto.ID)
-	if err != nil {
-		return err
-	}
-	if produtoExistente == nil {
-		return errors.New("produto não encontrado")
-	}
-
-	err = produto.Validar()
+	err := produto.Validar()
 	if err != nil {
 		return err
 	}
 
-	produto.UpdatedAt = time.Now()
-
-	return s.repository.Atualizar(ctx, produto)
+	return s.produtoClient.AtualizarProduto(ctx, produto.ID, produto.Nome, produto.Descricao, produto.Preco, string(produto.Categoria), produto.Disponivel)
 }
 
 func (s *ProdutoService) DeletarProduto(ctx context.Context, id string) error {
-	return s.repository.Deletar(ctx, id)
+	return s.produtoClient.DeletarProduto(ctx, id)
 }
