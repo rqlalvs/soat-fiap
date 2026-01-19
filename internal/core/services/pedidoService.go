@@ -5,74 +5,149 @@ import (
 	"errors"
 	"fmt"
 	"soat-fiap/internal/core/domain"
-	"soat-fiap/internal/core/ports"
-
-	"github.com/google/uuid"
+	"soat-fiap/pkg/clients"
+	"time"
 )
 
 type PedidoService struct {
-	pedidoRepository    ports.PedidoRepository
-	produtoRepository   ports.ProdutoRepository
-	pagamentoRepository ports.PagamentoRepository
+	pedidoClient    *clients.PedidoClient
+	produtoClient   *clients.ProdutoClient
+	clienteClient   *clients.ClienteClient
+	pagamentoClient *clients.PagamentoClient
 }
 
-func NovoPedidoService(pedidoRepository ports.PedidoRepository, produtoRepository ports.ProdutoRepository, pagamentoRepository ports.PagamentoRepository) *PedidoService {
+func NovoPedidoService(
+	pedidoClient *clients.PedidoClient,
+	produtoClient *clients.ProdutoClient,
+	clienteClient *clients.ClienteClient,
+	pagamentoClient *clients.PagamentoClient,
+) *PedidoService {
 	return &PedidoService{
-		pedidoRepository:    pedidoRepository,
-		produtoRepository:   produtoRepository,
-		pagamentoRepository: pagamentoRepository,
+		pedidoClient:    pedidoClient,
+		produtoClient:   produtoClient,
+		clienteClient:   clienteClient,
+		pagamentoClient: pagamentoClient,
+	}
+}
+
+func itemPedidoFromClient(i clients.ItemPedido) domain.ItemPedido {
+	return domain.ItemPedido{
+		ProdutoID:  i.ProdutoID,
+		Nome:       i.Nome,
+		Preco:      i.Preco,
+		Quantidade: i.Quantidade,
+	}
+}
+
+func itemPedidoToClient(i domain.ItemPedido) clients.ItemPedido {
+	return clients.ItemPedido{
+		ProdutoID:  i.ProdutoID,
+		Nome:       i.Nome,
+		Preco:      i.Preco,
+		Quantidade: i.Quantidade,
+	}
+}
+
+func pedidoFromClient(p *clients.Pedido) *domain.Pedido {
+	if p == nil {
+		return nil
+	}
+
+	itens := make([]domain.ItemPedido, 0, len(p.Itens))
+	for _, item := range p.Itens {
+		itens = append(itens, itemPedidoFromClient(item))
+	}
+
+	return &domain.Pedido{
+		ID:         p.ID,
+		ClienteID:  p.ClienteID,
+		Itens:      itens,
+		ValorTotal: p.ValorTotal,
+		Status:     domain.StatusPedido(p.Status),
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
 }
 
 func (s *PedidoService) CriarPedido(ctx context.Context, clienteID *string, itens []domain.ItemPedido) (*domain.Pedido, error) {
+	if clienteID != nil && *clienteID != "" {
+		if err := s.clienteClient.ValidarCliente(ctx, *clienteID); err != nil {
+			return nil, fmt.Errorf("erro ao validar cliente: %w", err)
+		}
+	}
 
-	for i, item := range itens {
-		produto, err := s.produtoRepository.BuscarPorID(ctx, item.ProdutoID)
+	itensClient := make([]clients.ItemPedido, 0, len(itens))
+	for _, item := range itens {
+		produto, err := s.produtoClient.ValidarProduto(ctx, item.ProdutoID)
 		if err != nil {
 			return nil, err
 		}
-		if produto == nil {
-			return nil, errors.New("produto não encontrado: " + item.ProdutoID)
-		}
-		if !produto.Disponivel {
-			return nil, errors.New("produto não disponível: " + produto.Nome)
-		}
 
-		itens[i].Nome = produto.Nome
-		itens[i].Preco = produto.Preco
+		item.Nome = produto.Nome
+		item.Preco = produto.Preco
+		itensClient = append(itensClient, itemPedidoToClient(item))
 	}
 
-	id := uuid.New().String()
-	pedido, err := domain.NovoPedido(id, clienteID, itens)
+	pedidoClient, err := s.pedidoClient.CriarPedido(ctx, clienteID, itensClient)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.pedidoRepository.Criar(ctx, pedido)
-	if err != nil {
-		return nil, err
-	}
-
-	return pedido, nil
+	return pedidoFromClient(pedidoClient), nil
 }
 
 func (s *PedidoService) BuscarPedidoPorID(ctx context.Context, id string) (*domain.Pedido, error) {
-	return s.pedidoRepository.BuscarPorID(ctx, id)
+	pedidoClient, err := s.pedidoClient.BuscarPorID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return pedidoFromClient(pedidoClient), nil
 }
 
 func (s *PedidoService) ListarPedidos(ctx context.Context) ([]*domain.Pedido, error) {
-	return s.pedidoRepository.Listar(ctx)
+	pedidosClient, err := s.pedidoClient.ListarPedidos(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	pedidos := make([]*domain.Pedido, 0, len(pedidosClient))
+	for _, p := range pedidosClient {
+		pedidos = append(pedidos, pedidoFromClient(p))
+	}
+
+	return pedidos, nil
 }
 
 func (s *PedidoService) ListarPedidosPorStatus(ctx context.Context, status domain.StatusPedido) ([]*domain.Pedido, error) {
 	if !domain.IsStatusValido(status) {
 		return nil, errors.New("status inválido")
 	}
-	return s.pedidoRepository.ListarPorStatus(ctx, status)
+
+	pedidosClient, err := s.pedidoClient.ListarPedidosPorStatus(ctx, string(status))
+	if err != nil {
+		return nil, err
+	}
+
+	pedidos := make([]*domain.Pedido, 0, len(pedidosClient))
+	for _, p := range pedidosClient {
+		pedidos = append(pedidos, pedidoFromClient(p))
+	}
+
+	return pedidos, nil
 }
 
 func (s *PedidoService) ListarPedidosPorCliente(ctx context.Context, clienteID string) ([]*domain.Pedido, error) {
-	return s.pedidoRepository.ListarPorCliente(ctx, clienteID)
+	pedidosClient, err := s.pedidoClient.ListarPedidosPorCliente(ctx, clienteID)
+	if err != nil {
+		return nil, err
+	}
+
+	pedidos := make([]*domain.Pedido, 0, len(pedidosClient))
+	for _, p := range pedidosClient {
+		pedidos = append(pedidos, pedidoFromClient(p))
+	}
+
+	return pedidos, nil
 }
 
 func (s *PedidoService) AtualizarStatusPedido(ctx context.Context, id string, status domain.StatusPedido) error {
@@ -80,7 +155,7 @@ func (s *PedidoService) AtualizarStatusPedido(ctx context.Context, id string, st
 		return errors.New("status inválido")
 	}
 
-	pedido, err := s.pedidoRepository.BuscarPorID(ctx, id)
+	pedido, err := s.pedidoClient.BuscarPorID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -88,29 +163,29 @@ func (s *PedidoService) AtualizarStatusPedido(ctx context.Context, id string, st
 		return errors.New("pedido não encontrado")
 	}
 
-	err = s.validarTransicaoStatus(ctx, pedido, status)
+	pedidoDomain := pedidoFromClient(pedido)
+	err = s.validarTransicaoStatus(ctx, pedidoDomain, status)
 	if err != nil {
 		return err
 	}
 
-	pedido.AtualizarStatus(status)
-	return s.pedidoRepository.Atualizar(ctx, pedido)
+	return s.pedidoClient.AtualizarStatusPedido(ctx, id, string(status))
 }
 
 func (s *PedidoService) validarTransicaoStatus(ctx context.Context, pedido *domain.Pedido, novoStatus domain.StatusPedido) error {
 
 	if novoStatus == domain.StatusEmPreparacao && pedido.Status == domain.StatusRecebido {
-		pagamento, err := s.pagamentoRepository.BuscarPorPedidoID(ctx, pedido.ID)
+		pagamentoClient, err := s.pagamentoClient.BuscarPorPedidoID(ctx, pedido.ID)
 		if err != nil {
 			return fmt.Errorf("erro ao verificar pagamento: %w", err)
 		}
 		
-		if pagamento == nil {
+		if pagamentoClient == nil {
 			return errors.New("não é possível iniciar preparação: pagamento não encontrado")
 		}
 		
-		if pagamento.Status != domain.StatusPagamentoAprovado {
-			return fmt.Errorf("não é possível iniciar preparação: pagamento não aprovado (status: %s)", pagamento.Status)
+		if pagamentoClient.Status != string(domain.StatusPagamentoAprovado) {
+			return fmt.Errorf("não é possível iniciar preparação: pagamento não aprovado (status: %s)", pagamentoClient.Status)
 		}
 	}
 	

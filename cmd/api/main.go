@@ -13,10 +13,9 @@ import (
 
 	config "soat-fiap/configs"
 	"soat-fiap/internal/adapters/primary/handlers"
-	"soat-fiap/internal/adapters/secondary/repositories"
 	"soat-fiap/internal/core/services"
 	"soat-fiap/internal/routes"
-	mysql "soat-fiap/pkg/database"
+	"soat-fiap/pkg/clients"
 
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -43,27 +42,17 @@ const (
 func main() {
 	cfg := config.LoadConfig()
 
-	db, err := mysql.ConectarMySQL(
-		cfg.DBHost,
-		cfg.DBPort,
-		cfg.DBUser,
-		cfg.DBPassword,
-		cfg.DBName,
-	)
-	if err != nil {
-		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
-	}
-	defer db.Close()
+	// Inicializar clients HTTP para os serviços externos
+	clienteClient := clients.NovoClienteClient(cfg.ClienteServiceURL)
+	produtoClient := clients.NovoProdutoClient(cfg.ProdutoServiceURL)
+	pedidoClient := clients.NovoPedidoClient(cfg.PedidoServiceURL)
+	pagamentoClient := clients.NovoPagamentoClient(cfg.PagamentoServiceURL)
 
-	clienteRepository := repositories.NovoClienteRepository(db)
-	produtoRepository := repositories.NovoProdutoRepository(db)
-	pedidoRepository := repositories.NovoPedidoRepository(db)
-	pagamentoRepository := repositories.NovoPagamentoRepository(db)
-
-	clienteService := services.NovoClienteService(clienteRepository)
-	produtoService := services.NovoProdutoService(produtoRepository)
-	pedidoService := services.NovoPedidoService(pedidoRepository, produtoRepository, pagamentoRepository)
-	pagamentoService := services.NovoPagamentoService(pagamentoRepository, pedidoService)
+	// Inicializar services com os clients
+	clienteService := services.NovoClienteService(clienteClient)
+	produtoService := services.NovoProdutoService(produtoClient)
+	pedidoService := services.NovoPedidoService(pedidoClient, produtoClient, clienteClient, pagamentoClient)
+	pagamentoService := services.NovoPagamentoService(pagamentoClient, pedidoClient)
 
 	clienteHandler := handlers.NovoClienteHandler(clienteService)
 	produtoHandler := handlers.NovoProdutoHandler(produtoService)

@@ -2,88 +2,97 @@ package services
 
 import (
 	"context"
-	"errors"
 	"soat-fiap/internal/core/domain"
-	"soat-fiap/internal/core/ports"
-	"soat-fiap/internal/core/common"
+	"soat-fiap/pkg/clients"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type ClienteService struct {
-	repository ports.ClienteRepository
+	clienteClient *clients.ClienteClient
 }
 
-func NovoClienteService(repository ports.ClienteRepository) *ClienteService {
+func NovoClienteService(clienteClient *clients.ClienteClient) *ClienteService {
 	return &ClienteService{
-		repository: repository,
+		clienteClient: clienteClient,
+	}
+}
+
+func clienteFromClient(c *clients.Cliente) *domain.Cliente {
+	if c == nil {
+		return nil
+	}
+	return &domain.Cliente{
+		ID:        c.ID,
+		Nome:      c.Nome,
+		CPF:       c.CPF,
+		Email:     c.Email,
+		Telefone:  c.Telefone,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+}
+
+func clienteToClient(c *domain.Cliente) *clients.Cliente {
+	if c == nil {
+		return nil
+	}
+	return &clients.Cliente{
+		ID:       c.ID,
+		Nome:     c.Nome,
+		CPF:      c.CPF,
+		Email:    c.Email,
+		Telefone: c.Telefone,
 	}
 }
 
 func (s *ClienteService) CriarCliente(ctx context.Context, nome, cpf, email, telefone string) (*domain.Cliente, error) {
-
-	clienteExistente, err := s.repository.BuscarPorCPF(ctx, cpf)
-	if err == nil && clienteExistente != nil {
-		return nil, errors.New("já existe um cliente com este CPF")
-	}
-
-	id := uuid.New().String()
-
-	cliente, err := domain.NovoCliente(id, nome, cpf, email, telefone)
+	clienteClient, err := s.clienteClient.CriarCliente(ctx, nome, cpf, email, telefone)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.repository.Criar(ctx, cliente)
-	if err != nil {
-		return nil, err
-	}
-
-	return cliente, nil
+	return clienteFromClient(clienteClient), nil
 }
 
 func (s *ClienteService) BuscarClientePorID(ctx context.Context, id string) (*domain.Cliente, error) {
-	return s.repository.BuscarPorID(ctx, id)
+	clienteClient, err := s.clienteClient.BuscarPorID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return clienteFromClient(clienteClient), nil
 }
 
 func (s *ClienteService) BuscarClientePorCPF(ctx context.Context, cpf string) (*domain.Cliente, error) {
-	if !common.ValidarCPF(cpf) {
-		return nil, errors.New("CPF inválido")
+	clienteClient, err := s.clienteClient.BuscarPorCPF(ctx, cpf)
+	if err != nil {
+		return nil, err
 	}
-	return s.repository.BuscarPorCPF(ctx, cpf)
+	return clienteFromClient(clienteClient), nil
 }
 
 func (s *ClienteService) ListarClientes(ctx context.Context) ([]*domain.Cliente, error) {
-	return s.repository.Listar(ctx)
+	clientesClient, err := s.clienteClient.ListarClientes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	clientes := make([]*domain.Cliente, 0, len(clientesClient))
+	for _, c := range clientesClient {
+		clientes = append(clientes, clienteFromClient(c))
+	}
+
+	return clientes, nil
 }
 
 func (s *ClienteService) AtualizarCliente(ctx context.Context, cliente *domain.Cliente) error {
-	clienteExistente, err := s.repository.BuscarPorID(ctx, cliente.ID)
-	if err != nil {
-		return err
-	}
-	if clienteExistente == nil {
-		return errors.New("cliente não encontrado")
-	}
-
-	if clienteExistente.CPF != cliente.CPF {
-		clienteComMesmoCPF, err := s.repository.BuscarPorCPF(ctx, cliente.CPF)
-		if err == nil && clienteComMesmoCPF != nil && clienteComMesmoCPF.ID != cliente.ID {
-			return errors.New("já existe outro cliente com este CPF")
-		}
-	}
-
-	err = cliente.Validar()
+	err := cliente.Validar()
 	if err != nil {
 		return err
 	}
 
-	cliente.UpdatedAt = time.Now()
-
-	return s.repository.Atualizar(ctx, cliente)
+	return s.clienteClient.AtualizarCliente(ctx, cliente.ID, cliente.Nome, cliente.CPF, cliente.Email, cliente.Telefone)
 }
 
 func (s *ClienteService) DeletarCliente(ctx context.Context, id string) error {
-	return s.repository.Deletar(ctx, id)
+	return s.clienteClient.DeletarCliente(ctx, id)
 }
